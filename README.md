@@ -50,9 +50,3 @@ brokerage-onboarding-abtest/
 python analysis.py
 ```
 
-## 8. 简历可用链接锚文本
-- GitHub
-- Portfolio
-- Report
-
-对应简历项目写法可参考根目录 `resume_link_snippets.md`。
