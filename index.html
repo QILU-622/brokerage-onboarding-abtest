@@ -17,30 +17,58 @@ code{background:#f3f4f6;padding:2px 6px;border-radius:6px;}
 </head>
 <body>
 
-<h1>券商 App 新客开户转化链路 A/B 实验评估与用户痛点归因</h1>
-<p class="muted">Synthetic data project for portfolio use.</p>
+<h1>券商 App 新客开户 A/B 实验评估</h1>
+<p class="muted">基于模拟业务数据构建，仅用于作品集展示</p>
+
+<div style="display:flex; gap:12px; flex-wrap:wrap; margin:16px 0 24px 0;">
+  <a href="https://github.com/QILU-622/brokerage-onboarding-abtest" target="_blank" style="display:inline-block; padding:10px 14px; border-radius:10px; text-decoration:none; font-weight:600; border:1px solid #d0d7de;">GitHub Repo</a>
+  <a href="https://github.com/QILU-622/brokerage-onboarding-abtest/blob/main/brokerage_abtest_report.md" target="_blank" style="display:inline-block; padding:10px 14px; border-radius:10px; text-decoration:none; font-weight:600; border:1px solid #d0d7de;">Report</a>
+  <a href="https://github.com/QILU-622/brokerage-onboarding-abtest/blob/main/brokerage_abtest_analysis.ipynb" target="_blank" style="display:inline-block; padding:10px 14px; border-radius:10px; text-decoration:none; font-weight:600; border:1px solid #d0d7de;">Notebook</a>
+  <a href="https://github.com/QILU-622/brokerage-onboarding-abtest/blob/main/balance_check.sql" target="_blank" style="display:inline-block; padding:10px 14px; border-radius:10px; text-decoration:none; font-weight:600; border:1px solid #d0d7de;">SQL</a>
+</div>
+
 <div class="grid">
-  <div class="card"><div class="metric">46,218</div><div>新客样本</div></div>
-  <div class="card"><div class="metric">221,046</div><div>事件日志</div></div>
-  <div class="card"><div class="metric">4.74pct</div><div>开户完成率 uplift</div></div>
-  <div class="card"><div class="metric">1.86pct</div><div>7日留存 uplift</div></div>
+  <div class="card">
+    <div class="metric">46,218</div>
+    <div>新客样本</div>
+  </div>
+  <div class="card">
+    <div class="metric">221,046</div>
+    <div>事件日志</div>
+  </div>
+  <div class="card">
+    <div class="metric">4.74 ppt</div>
+    <div>开户完成率 uplift</div>
+  </div>
+  <div class="card">
+    <div class="metric">1.86 ppt</div>
+    <div>7日留存 uplift</div>
+  </div>
+  <div class="card">
+    <div class="metric">无显著变化</div>
+    <div>7日投诉率</div>
+  </div>
 </div>
+
 <div class="card">
-<h2>业务问题</h2>
-<p>券商开户链路长，用户在表单填写和风险测评阶段流失明显，需要验证流程优化是否真正提升开户完成率，并确认护栏指标不受损。</p>
+  <h2>业务问题</h2>
+  <p>券商 App 新客开户链路长，用户在资料填写、身份验证与风险测评阶段流失明显，需要验证“表单精简 + 进度条提示 + 关键疑问解释”是否能够提升开户完成率，同时确认护栏指标不受损。</p>
 </div>
+
 <div class="card">
-<h2>实验设计</h2>
-<p>对照组使用原始流程，实验组使用“表单精简 + 进度条提示 + 关键疑问解释”。主指标为开户完成率，护栏指标为 7 日留存率和 7 日投诉率。</p>
+  <h2>实验设计</h2>
+  <p>对照组使用原始流程，实验组使用“表单精简 + 进度条提示 + 关键疑问解释”。主指标为开户完成率，护栏指标为 7 日留存率和 7 日投诉率。</p>
+  <p><strong>方法说明：</strong>已完成随机分流平衡性检查（balance check）；uplift 显著性使用双样本比例检验评估，并报告 95% 置信区间。</p>
 </div>
+
 <div class="card">
-<h2>关键结论</h2>
-<ul>
-<li>开户完成率由 16.82% 提升至 21.55% 。</li>
-<li>绝对 uplift 为 4.74pct，统计显著。</li>
-<li>投诉率无显著变化，说明优化没有明显引入负体验。</li>
-<li>referral 渠道 uplift 最高，适合优先灰度上线。</li>
-</ul>
+  <h2>关键结论</h2>
+  <ul>
+    <li>开户完成率由 16.82% 提升至 21.55%，绝对 uplift 为 <strong>4.74 ppt</strong>，统计显著。</li>
+    <li>7 日留存率提升 <strong>1.86 ppt</strong>，说明优化不仅提升转化，也改善了后续留存。</li>
+    <li>7 日投诉率无显著变化，说明流程优化没有明显引入负向体验。</li>
+    <li>Referral 与 Paid social 渠道 uplift 最强，适合优先灰度上线；风险测评前后仍存在较大流失，建议继续补充 FAQ 与材料预检提示。</li>
+  </ul>
 </div>
 <div class="card">
   <h2>图表</h2>
