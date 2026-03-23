@@ -111,9 +111,9 @@
       <section class="panel hero-main">
         <div class="eyebrow">Synthetic Data · Growth Analytics · Experiment Evaluation</div>
         <h1>券商 App 新客开户转化链路<br/>A/B 实验评估与上线决策</h1>
-        <p>这个作品集案例用 <strong>synthetic data</strong> 复现券商开户流程优化实验：从业务问题定义、随机分流检查、漏斗诊断、分层 uplift、置信区间，到灰度上线建议，完整展示增长分析岗位的工作链路。</p>
-        <p>与只展示“实验显著提升转化”的作品不同，这个版本把重点放在 <strong>为什么会提升、提升发生在哪一段、应该先在哪些渠道灰度、上线后继续看什么风险</strong>，让项目更接近真实业务评审材料。</p>
-        <div class="hero-note"><strong>项目定位：</strong>本项目不声称披露真实券商业务数据，重点在于展示实验评估方法、因果表达习惯、业务决策框架与面试可深挖的分析逻辑。</div>
+        <p>这个分析案例基于 <strong>synthetic data</strong> 复现券商开户流程优化实验：从业务问题定义、随机分流检查、漏斗诊断、分层 uplift、置信区间，到灰度上线建议，完整呈现从问题定义到落地决策的分析流程。</p>
+        <p>页面重点放在 <strong>为什么会提升、提升发生在哪一段、应该先在哪些渠道灰度、上线后继续看什么风险</strong>，使结果展示更贴近真实业务评估场景。</p>
+        <div class="hero-note"><strong>数据说明：</strong>本项目不披露真实券商业务数据，页面中的结果与图表用于展示实验分析方法、因果表达习惯与业务决策框架。</div>
         <div class="btns">
           <a class="btn primary" href="https://github.com/QILU-622/brokerage-onboarding-abtest" target="_blank" rel="noreferrer">GitHub 仓库</a>
           <a class="btn" href="https://github.com/QILU-622/brokerage-onboarding-abtest/blob/main/brokerage_abtest_report.md" target="_blank" rel="noreferrer">分析报告</a>
@@ -200,11 +200,11 @@
         </article>
 
         <article class="panel card">
-          <h2 style="margin-top:0">面试官最关心的三点</h2>
+          <h2 style="margin-top:0">关键发现与业务含义</h2>
           <div class="bullet">
-            <div class="item"><strong>你如何确认实验可靠？</strong><br/>先看随机分流后的平衡性检查，再看样本识别能力、显著性与置信区间，而不是只看 p 值。</div>
-            <div class="item"><strong>你如何解释效果来源？</strong><br/>通过 cumulative funnel + step-to-step conversion 双视角，区分“整体 reach 变高”与“相邻步骤推进效率变高”。</div>
-            <div class="item"><strong>你如何落到业务动作？</strong><br/>不直接全量上线，而是按渠道灰度，继续盯投诉、身份验证失败率与客服咨询量等护栏。</div>
+            <div class="item"><strong>结果稳定性：</strong>先验证随机分流后的样本平衡性，再结合样本识别能力、显著性与置信区间判断 uplift 是否稳定，而不是只依赖单一 p 值结论。</div>
+            <div class="item"><strong>关键转化变化：</strong>通过 cumulative funnel 与 step-to-step conversion 双视角，区分“整体 reach 提升”与“相邻步骤推进效率提升”，定位真正起作用的环节。</div>
+            <div class="item"><strong>落地建议：</strong>不直接全量上线，而是按渠道与用户类型逐步放量，并持续监控投诉率、身份验证失败率与客服咨询量等体验护栏。</div>
           </div>
         </article>
       </div>
@@ -212,7 +212,7 @@
 
     <section class="section" id="design">
       <h2>实验设计</h2>
-      <p class="lead">这个版本把实验表达从“做了一个 A/B test”升级为“完成了一次可供业务决策的实验评审”。</p>
+      <p class="lead">本次实验采用 user-level 随机分流，在完整开户链路与 7 日后验指标上评估流程改动效果。</p>
       <div class="method-grid">
         <article class="panel card">
           <h3>随机化单位</h3>
@@ -307,7 +307,7 @@
 
     <section class="section" id="diagnosis">
       <h2>漏斗诊断：效果主要发生在哪里</h2>
-      <p class="lead">真正能让项目从“会算 uplift”升级到“懂业务”的地方，在于你能否说明 <strong>treatment 改善了哪一个环节</strong>，以及为什么是那个环节。</p>
+      <p class="lead">为了定位 uplift 的主要来源，需要同时观察累计 reach 与相邻步骤转化率，判断改善究竟发生在哪个环节。</p>
       <div class="two-col">
         <article class="panel card">
           <h3>Step-to-step conversion 变化</h3>
@@ -370,12 +370,12 @@
         </article>
 
         <article class="panel card">
-          <h3>诊断结论</h3>
+          <h3>关键诊断</h3>
           <div class="bullet">
             <div class="item"><strong>最大贡献点：</strong><br/>基础信息提交阶段提升 <strong>+7.14 ppt</strong>，说明表单精简显著降低了填写摩擦与放弃率。</div>
             <div class="item"><strong>第二贡献点：</strong><br/>进入风险测评与完成风险测评分别提升 <strong>+4.40 ppt</strong> 与 <strong>+5.11 ppt</strong>，说明进度条提示与关键疑问解释有效降低了理解成本。</div>
             <div class="item"><strong>反直觉但很有价值的发现：</strong><br/>最后一步 <code>bind bank card → account open complete</code> 的 step conversion 略降 <strong>0.94 ppt</strong>。这意味着整体 uplift 主要来自更早阶段的推进，而不是最后一步的收口优化。</div>
-            <div class="item"><strong>面试里可以这样说：</strong><br/>“这个实验不是在最后一步强行拉高转化，而是在用户最容易疑惑和放弃的前中段降低认知负担，因此同时带来了完成率和留存率的改善。”</div>
+            <div class="item"><strong>一句话结论：</strong><br/>本轮 uplift 主要来自前中段摩擦下降，而不是最后一步收口改善；因此它更接近“降低认知负担”的优化，而不是“强推转化”的优化。</div>
           </div>
         </article>
       </div>
@@ -444,15 +444,15 @@
             <div class="item"><strong>Referral / Paid social 优先：</strong><br/>绝对 uplift 更高，说明对高摩擦来源用户更有效，资源投入回报更直接。</div>
             <div class="item"><strong>不是直接全量：</strong><br/>因为当前 treatment 属于多因素打包改动，且开户流程还受合规、KYC 成功率与客服承压影响，先灰度更稳妥。</div>
             <div class="item"><strong>灰度阶段继续跟踪：</strong><br/>7 日投诉率、身份验证失败率、客服咨询量、首充率与高价值用户激活质量。</div>
-            <div class="item"><strong>业务表达升级点：</strong><br/>从“这个版本转化更高”升级为“这个版本更适合先在某类渠道上线，因为收益更集中、风险更可控”。</div>
+            <div class="item"><strong>策略含义：</strong><br/>当前版本更适合先在特定渠道上线，因为收益更集中、风险也更便于控制。</div>
           </div>
         </article>
       </div>
     </section>
 
     <section class="section">
-      <h2>业务影响表达</h2>
-      <p class="lead">如果没有真实 ARPU / LTV 数据，不要硬编收入金额。更稳健的写法是用“每 10 万 landing 用户可新增多少关键行为”来表达潜在价值。</p>
+      <h2>潜在业务价值</h2>
+      <p class="lead">在缺少长期收入口径时，先用“每 10 万 landing 用户可新增多少关键行为”来表达短中期业务价值，更符合当前案例的数据边界。</p>
       <div class="insight-grid">
         <article class="panel card">
           <div class="metric-tag tag-blue">Completed accounts</div>
@@ -467,14 +467,14 @@
         <article class="panel card">
           <div class="metric-tag tag-violet">7-day funded accounts</div>
           <div class="big mono">+1,940</div>
-          <p>首充率方向与主指标一致，可作为潜在商业价值的早期信号，但在真实项目里仍需配合长期价值指标继续验证。</p>
+          <p>首充率方向与主指标一致，可作为潜在商业价值的早期信号，但仍需配合更长期的资金留存与交易活跃指标继续验证。</p>
         </article>
       </div>
     </section>
 
     <section class="section" id="figures">
       <h2>图表</h2>
-      <p class="lead">保留原仓库中的图表文件，但把整页叙事升级为“图表服务于决策”，而不是“图表只是展示结果”。</p>
+      <p class="lead">保留原仓库中的图表文件，并将它们放回到完整的业务判断语境中，而不只是孤立展示结果。</p>
       <div class="figure-grid">
         <article class="panel figure-card">
           <img src="01_onboarding_funnel.png" alt="Cumulative stage reach by experiment group" />
@@ -487,7 +487,7 @@
           <img src="02_primary_metrics.png" alt="Primary and guardrail metrics" />
           <div class="body">
             <h3>Primary &amp; guardrail metrics</h3>
-            <p>主指标与护栏分开展示，更适合在面试或评审中强调“效果提升没有建立在体验受损上”。</p>
+            <p>主指标与护栏分开展示，更清楚地说明“效果提升并没有建立在体验受损之上”。</p>
           </div>
         </article>
         <article class="panel figure-card">
@@ -501,7 +501,7 @@
           <img src="04_confidence_intervals.png" alt="Treatment effect with exact 95% confidence intervals" />
           <div class="body">
             <h3>Exact confidence intervals</h3>
-            <p>用精确区间值替代“显著 / 不显著”的笼统结论，更容易体现对 effect size 与不确定性的理解。</p>
+            <p>用精确区间值替代“显著 / 不显著”的笼统结论，更利于呈现 effect size 与不确定性。</p>
           </div>
         </article>
       </div>
@@ -513,7 +513,7 @@
         <article class="panel card">
           <h3>当前局限性</h3>
           <ul class="clean">
-            <li>这是 <strong>synthetic data</strong> 作品集案例，目标是复现分析框架，而不是主张真实业务结论。</li>
+            <li>这是 <strong>synthetic data</strong> 分析案例，目标是复现实验分析框架，而不是主张真实业务结论。</li>
             <li>当前 treatment 为多项改动打包，因此只能识别“组合效果”，不能直接识别每个设计元素的独立贡献。</li>
             <li>7 日留存与 7 日首充仍属于短期质量指标，不能替代长期入金质量、长期交易活跃或客户生命周期价值。</li>
           </ul>
@@ -549,7 +549,7 @@
     </section>
 
     <footer class="footer">
-      <p>注：本页使用 synthetic data 复现增长分析岗位中常见的实验评估表达。所有百分比变化均为绝对百分点变化（ppt）。</p>
+      <p>注：本页使用 synthetic data 复现实验评估分析场景。所有百分比变化均为绝对百分点变化（ppt）。</p>
     </footer>
   </main>
 </body>
