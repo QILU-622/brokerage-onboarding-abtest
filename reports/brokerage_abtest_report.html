@@ -5,107 +5,231 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Brokerage App 新客开户 A/B 实验评估报告</title>
   <style>
-    :root { --bg:#f7f8fb; --card:#ffffff; --text:#1f2937; --muted:#6b7280; --line:#e5e7eb; --accent:#0f766e; }
-    * { box-sizing:border-box; }
-    body { margin:0; background:var(--bg); color:var(--text); font:16px/1.75 -apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,"PingFang SC","Noto Sans CJK SC","Microsoft YaHei",sans-serif; }
-    .wrap { max-width:980px; margin:40px auto; padding:0 20px; }
-    .card { background:var(--card); border:1px solid var(--line); border-radius:18px; padding:40px; box-shadow:0 10px 30px rgba(0,0,0,.04); }
-    h1,h2,h3 { line-height:1.3; margin:0 0 16px; }
-    h1 { font-size:40px; margin-bottom:24px; }
-    h2 { font-size:28px; margin-top:36px; padding-top:12px; border-top:1px solid var(--line); }
-    h3 { font-size:22px; margin-top:28px; }
-    p, li { font-size:17px; }
-    ul { padding-left:22px; }
-    code { background:#f3f4f6; padding:2px 6px; border-radius:6px; font-family:ui-monospace,SFMono-Regular,Menlo,monospace; }
-    table { width:100%; border-collapse:collapse; margin:16px 0 24px; display:block; overflow:auto; }
-    th, td { border:1px solid var(--line); padding:10px 12px; text-align:left; vertical-align:top; }
-    th { background:#f9fafb; }
-    blockquote { margin:18px 0; padding:12px 16px; border-left:4px solid var(--accent); background:#f0fdfa; color:#134e4a; }
-    .toplinks { display:flex; gap:12px; flex-wrap:wrap; margin:0 0 18px; }
-    .btn { display:inline-block; padding:10px 14px; border-radius:10px; border:1px solid var(--line); text-decoration:none; color:var(--text); background:#fff; }
-    .btn:hover { border-color:#cbd5e1; background:#f8fafc; }
+    body {
+      margin: 0;
+      font: 16px/1.72 -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "PingFang SC", "Microsoft YaHei", sans-serif;
+      color: #1f2a44;
+      background: #f6f8fb;
+    }
+    .container {
+      max-width: 980px;
+      margin: 0 auto;
+      padding: 36px 24px 56px;
+    }
+    .paper {
+      background: #fff;
+      border: 1px solid #e3e9f2;
+      border-radius: 18px;
+      box-shadow: 0 16px 40px rgba(31,42,68,.08);
+      padding: 32px 34px;
+    }
+    h1,h2,h3 {
+      color: #111a2b;
+      letter-spacing: -.02em;
+    }
+    h1 { font-size: 34px; margin: 0 0 12px; }
+    h2 { font-size: 26px; margin: 28px 0 10px; }
+    h3 { font-size: 20px; margin: 20px 0 8px; }
+    p { margin: 10px 0; }
+    .lead {
+      color: #5a6784;
+      background: #f4f7fb;
+      border: 1px solid #e4ebf4;
+      border-radius: 14px;
+      padding: 14px 16px;
+    }
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin: 14px 0;
+      border: 1px solid #e6ebf4;
+      border-radius: 12px;
+      overflow: hidden;
+    }
+    th, td {
+      border-bottom: 1px solid #e8edf5;
+      padding: 10px 12px;
+      text-align: left;
+      vertical-align: top;
+    }
+    th {
+      background: #f4f7fb;
+      font-size: 14px;
+    }
+    tr:last-child td { border-bottom: none; }
+    ul, ol { padding-left: 22px; }
+    code {
+      background: #f3f6fb;
+      border: 1px solid #e3e9f2;
+      padding: 2px 6px;
+      border-radius: 8px;
+      font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+    }
+    .callout {
+      margin: 14px 0;
+      padding: 14px 16px;
+      border-left: 4px solid #2f7ef7;
+      background: #f4f8ff;
+      border-radius: 12px;
+    }
+    .footer {
+      margin-top: 18px;
+      color: #66748f;
+      font-size: 14px;
+    }
+    a { color: #2463d8; text-decoration: none; }
   </style>
 </head>
 <body>
-  <div class="wrap">
-    <div class="toplinks">
-      <a class="btn" href="../index.html">返回首页</a>
-      <a class="btn" href="brokerage_abtest_report.md">查看 Markdown 源文件</a>
-    </div>
-    <article class="card">
+  <div class="container">
+    <div class="paper">
       <h1>Brokerage App 新客开户 A/B 实验评估报告</h1>
-<p>&gt; **定位**：一个可复现的 synthetic-data 作品集案例，用来展示增长分析 / 产品分析岗位在实验评估中的完整工作流。</p>
-<p>&gt; **边界**：所有数据均为合成模拟数据，不包含任何真实券商用户信息，也不声称代表真实券商经营结果。</p>
-<h2>1. 业务问题</h2>
-<p>券商 App 新客开户链路长、摩擦点多，业务希望验证一组组合式流程优化——**表单精简 + 进度条提示 + 关键疑问解释**——是否能够显著提升开户完成率，同时不伤害体验质量指标。</p>
-<h2>2. 数据与实验范围</h2>
-<ul>
-<li>样本量：**46,218** 名新客</li>
-<li>事件日志：**221,046** 条</li>
-<li>实验期：**2026-01-01 至 2026-03-16（75 天）**</li>
-<li>随机化单位：**user-level 50/50 assignment**</li>
-<li>对照组 / 实验组：**23,256 / 22,962**</li>
-</ul>
-<h3>2.1 数据表</h3>
-<p>| 表名 | 粒度 | 关键字段 | 用途 |</p>
-<p>|---|---|---|---|</p>
-<p>| `ab_assignment.csv` | user | `experiment_group`, `channel`, `device_type`, `source_intent`, `age_band` | 分流、分层与基线平衡性检查 |</p>
-<p>| `onboarding_events.csv` | event | `event_name`, `step_no`, `status`, `dwell_seconds` | 漏斗与步骤级诊断 |</p>
-<p>| `post_metrics.csv` | user | `account_completed`, `retention_7d`, `complaint_7d`, `first_deposit_7d`, `trade_count_7d` | 主指标、护栏指标与下游业务质量指标 |</p>
-<h2>3. 指标定义</h2>
-<p>| 指标 | 角色 | 定义 |</p>
-<p>|---|---|---|</p>
-<p>| Account-open completion rate | Primary metric | 用户在观察窗口内完成开户的比例 |</p>
-<p>| 7-day retention rate | Guardrail metric | 用户分流后 7 天内仍有回访/活跃记录的比例 |</p>
-<p>| 7-day complaint rate | Guardrail metric | 用户分流后 7 天内出现投诉记录的比例 |</p>
-<p>| 7-day first-deposit rate | Secondary business-quality metric | 用户分流后 7 天内完成首次入金的比例 |</p>
-<h2>4. 方法</h2>
-<p>1. **Baseline balance check**：对 `channel`、`device_type`、`source_intent`、`age_band` 做列联表检验。</p>
-<p>2. **Overall treatment effect**：对二元指标采用双样本比例 z 检验，并报告 **unpooled 95% confidence intervals**。</p>
-<p>3. **Funnel diagnostics**：同时报告 cumulative reach 和 step-to-step conversion，避免把两类漏斗口径混淆。</p>
-<p>4. **Channel heterogeneity**：按渠道分层估计 completion uplift，并使用 **Holm correction** 控制多重比较的 family-wise error。</p>
-<p>5. **Sensitivity / detectability**：基于已实现样本量估算完成率的近似 MDE。</p>
-<h2>5. 基线平衡性</h2>
-<p>各主要分层变量均未见显著失衡：</p>
-<ul>
-<li>`channel`: p = 0.205</li>
-<li>`device_type`: p = 0.286</li>
-<li>`source_intent`: p = 0.421</li>
-<li>`age_band`: p = 0.936</li>
-</ul>
-<h2>6. 总体效果</h2>
-<p>| Metric | Control | Treatment | Uplift | 95% CI | p-value |</p>
-<p>|---|---:|---:|---:|---:|---:|</p>
-<p>| Account-open completion rate | 16.82% | 21.55% | +4.74 ppt | [4.02, 5.45] | &lt; 0.001 |</p>
-<p>| 7-day retention rate | 35.23% | 37.09% | +1.86 ppt | [0.98, 2.73] | &lt; 0.001 |</p>
-<p>| 7-day complaint rate | 1.28% | 1.28% | +0.00 ppt | [-0.20, 0.21] | 0.975 |</p>
-<p>| 7-day first-deposit rate | 34.18% | 36.12% | +1.94 ppt | [1.07, 2.81] | &lt; 0.001 |</p>
-<h2>7. 漏斗诊断</h2>
-<ul>
-<li>Submit Basic Info：+7.14 ppt</li>
-<li>Risk Assessment Start：+4.40 ppt</li>
-<li>Risk Assessment Complete：+5.11 ppt</li>
-</ul>
-<p>这说明 treatment 主要降低了填写阻力与风险问答阻力，而不是单纯优化最后确认页。</p>
-<h2>8. 渠道异质性</h2>
-<p>| Channel | Control / Treatment n | Uplift | 95% CI | Holm-adjusted p | Priority proxy |</p>
-<p>|---|---:|---:|---:|---:|---:|</p>
-<p>| Referral | 4,156 / 4,070 | +5.65 ppt | [3.85, 7.46] | &lt; 0.001 | 465 |</p>
-<p>| Paid social | 5,991 / 6,026 | +5.59 ppt | [4.32, 6.86] | &lt; 0.001 | 672 |</p>
-<p>| Offline broker | 3,813 / 3,664 | +4.98 ppt | [3.04, 6.92] | &lt; 0.001 | 372 |</p>
-<p>| Content / SEO | 3,809 / 3,649 | +4.41 ppt | [2.61, 6.22] | &lt; 0.001 | 329 |</p>
-<p>| App store | 5,487 / 5,553 | +3.43 ppt | [2.02, 4.85] | &lt; 0.001 | 379 |</p>
-<h2>9. 局限性</h2>
-<p>1. 这是 synthetic-data 作品集案例，不应把数值本身当作真实券商经营结论。</p>
-<p>2. 当前 treatment 是组合式改动，只能识别组合效果，不能识别单个设计元素的独立贡献。</p>
-<p>3. 7-day retention 与 first-deposit 只代表短期质量，不替代长期交易活跃、LTV 或合规风险结果。</p>
-<p>4. Detectability 展示的是已实现样本规模下的近似 MDE，不等同于正式项目中的事前 power plan。</p>
-<h2>10. 复现方式</h2>
-<p>```bash</p>
-<p>pip install -r requirements.txt</p>
-<p>python analysis.py</p>
-<p>```</p>
-    </article>
+      <div class="lead">
+        定位：一个可复现的 synthetic-data 作品集案例，用来展示增长分析 / 产品分析岗位在实验评估中的完整工作流。<br>
+        边界：所有数据均为合成模拟数据，不包含任何真实券商用户信息，也不声称代表真实券商经营结果。
+      </div>
+
+      <h2>1. 业务问题</h2>
+      <p>券商 App 新客开户链路长、摩擦点多，业务希望验证一组组合式流程优化——表单精简 + 进度条提示 + 关键疑问解释——是否能够显著提升开户完成率，同时不伤害体验质量指标。</p>
+
+      <h2>2. 数据与实验范围</h2>
+      <ul>
+        <li>样本量：46,218 名新客</li>
+        <li>事件日志：221,046 条</li>
+        <li>实验期：2026-01-01 至 2026-03-16（75 天）</li>
+        <li>随机化单位：user-level 50/50 assignment</li>
+        <li>对照组 / 实验组：23,256 / 22,962</li>
+      </ul>
+
+      <h3>2.1 数据表</h3>
+      <table>
+        <thead>
+          <tr><th>表名</th><th>粒度</th><th>关键字段</th><th>用途</th></tr>
+        </thead>
+        <tbody>
+          <tr><td><code>ab_assignment.csv</code></td><td>user</td><td><code>experiment_group</code>, <code>channel</code>, <code>device_type</code>, <code>source_intent</code>, <code>age_band</code></td><td>分流、分层与基线平衡性检查</td></tr>
+          <tr><td><code>onboarding_events.csv</code></td><td>event</td><td><code>event_name</code>, <code>step_no</code>, <code>status</code>, <code>dwell_seconds</code></td><td>漏斗与步骤级诊断</td></tr>
+          <tr><td><code>post_metrics.csv</code></td><td>user</td><td><code>account_completed</code>, <code>retention_7d</code>, <code>complaint_7d</code>, <code>first_deposit_7d</code>, <code>trade_count_7d</code></td><td>主指标、护栏指标与下游业务质量指标</td></tr>
+        </tbody>
+      </table>
+
+      <h2>3. 指标定义</h2>
+      <table>
+        <thead>
+          <tr><th>指标</th><th>角色</th><th>定义</th></tr>
+        </thead>
+        <tbody>
+          <tr><td>Account-open completion rate</td><td>Primary metric</td><td>用户在观察窗口内完成开户的比例</td></tr>
+          <tr><td>7-day retention rate</td><td>Guardrail metric</td><td>用户分流后 7 天内仍有回访 / 活跃记录的比例</td></tr>
+          <tr><td>7-day complaint rate</td><td>Guardrail metric</td><td>用户分流后 7 天内出现投诉记录的比例</td></tr>
+          <tr><td>7-day first-deposit rate</td><td>Secondary business-quality metric</td><td>用户分流后 7 天内完成首次入金的比例</td></tr>
+        </tbody>
+      </table>
+
+      <h2>4. 方法</h2>
+      <ol>
+        <li>Baseline balance check：对 <code>channel</code>、<code>device_type</code>、<code>source_intent</code>、<code>age_band</code> 做列联表检验。</li>
+        <li>Overall treatment effect：对二元指标采用双样本比例 z 检验，并报告 unpooled 95% confidence intervals。</li>
+        <li>Funnel diagnostics：同时报告 cumulative reach 和 step-to-step conversion，避免把两类漏斗口径混淆。</li>
+        <li>Channel heterogeneity：按渠道分层估计 completion uplift，并使用 Holm correction 控制多重比较的 family-wise error。</li>
+        <li>Sensitivity / detectability：基于已实现样本量估算完成率的近似 MDE。</li>
+      </ol>
+
+      <h2>5. 基线平衡性</h2>
+      <ul>
+        <li><code>channel</code>: p = 0.205</li>
+        <li><code>device_type</code>: p = 0.286</li>
+        <li><code>source_intent</code>: p = 0.421</li>
+        <li><code>age_band</code>: p = 0.936</li>
+      </ul>
+
+      <h2>6. 实验风险与有效性威胁</h2>
+      <h3>6.1 SRM（Sample Ratio Mismatch）</h3>
+      <p>Control / Treatment 为 23,256 / 22,962，偏离理想 50/50 约 0.64%，当前看不到明显异常分流信号。但正式项目里，SRM 仍应是第一道健康检查：若 assignment log、exposure log 与最终 analysis cohort 不一致，后续 uplift 解释将显著失真。</p>
+
+      <h3>6.2 污染 / Interference</h3>
+      <p>如果用户重复进入链路、跨渠道回流、被客服人工补救、或实验期叠加其他运营触达，control 与 treatment 的暴露边界可能被稀释。正式落地时需要锁定首曝分组、对 user_id 去重，并尽量剔除人工介入造成的二次影响。</p>
+
+      <h3>6.3 跨设备 / Identity stitching</h3>
+      <p>同一用户若在 mobile / web 或不同设备之间切换，而标识未正确合并，可能出现跨组暴露或步骤漏记。这类问题普通 balance check 抓不出来，因此正式分析应依赖稳定 account key 或 device graph 完成 join。</p>
+
+      <h3>6.4 观察窗截断 / Mature-window censoring</h3>
+      <p>实验截止到 2026-03-16，而 7 日留存、7 日首充要求完整成熟窗。尾部用户若未走满 7 天，会系统性低估 post metrics，因此正式结果应只保留 mature cohort，或明确 cohort 截尾规则。</p>
+
+      <h3>6.5 Novelty effect</h3>
+      <p>进度条与 FAQ 解释类改动，早期可能因为“新鲜感”而短暂抬升启动率与风险问答完成率。如果 uplift 在灰度放量后快速回落，那么短期实验结果会高于长期稳定效果，因此需要按周跟踪 effect drift。</p>
+
+      <div class="callout">更成熟的实验复盘，不只是证明“有显著 uplift”，还要说明“结果为什么值得信、为什么当前只建议灰度而非直接全量”。</div>
+
+      <h2>7. 总体效果</h2>
+      <table>
+        <thead>
+          <tr><th>Metric</th><th>Control</th><th>Treatment</th><th>Uplift</th><th>95% CI</th><th>p-value</th></tr>
+        </thead>
+        <tbody>
+          <tr><td>Account-open completion rate</td><td>16.82%</td><td>21.55%</td><td>+4.74 ppt</td><td>[4.02, 5.45]</td><td>&lt; 0.001</td></tr>
+          <tr><td>7-day retention rate</td><td>35.23%</td><td>37.09%</td><td>+1.86 ppt</td><td>[0.98, 2.73]</td><td>&lt; 0.001</td></tr>
+          <tr><td>7-day complaint rate</td><td>1.28%</td><td>1.28%</td><td>+0.00 ppt</td><td>[-0.20, 0.21]</td><td>0.975</td></tr>
+          <tr><td>7-day first-deposit rate</td><td>34.18%</td><td>36.12%</td><td>+1.94 ppt</td><td>[1.07, 2.81]</td><td>&lt; 0.001</td></tr>
+        </tbody>
+      </table>
+
+      <h2>8. 漏斗诊断</h2>
+      <ul>
+        <li>Submit Basic Info：+7.14 ppt</li>
+        <li>Risk Assessment Start：+4.40 ppt</li>
+        <li>Risk Assessment Complete：+5.11 ppt</li>
+      </ul>
+
+      <h3>8.1 反常结果解释：为什么最后一步略降，整体结论仍然成立</h3>
+      <p>最后一步 <code>Bind bank card → Complete</code> 的 step conversion 为 <strong>-0.94 ppt</strong>，但这并不与整体 uplift 冲突，原因主要有三层：</p>
+      <ol>
+        <li><strong>分母构成变化：</strong>treatment 把更多中等意向用户推进到了更后面阶段，末端分母扩大后，最后一步的平均收口率可能被轻微摊薄。</li>
+        <li><strong>末端摩擦未被直接触及：</strong>当前改动主要作用于前中段认知负担；而末端开户完成更受 OTP、银行卡验证、KYC 复核、外部跳转等待等因素影响。</li>
+        <li><strong>幅度大小不对称：</strong>末端的 -0.94 ppt 明显小于前中段 +7.14 / +4.40 / +5.11 ppt 的提升，因此 end-to-end completion 仍然显著抬升。</li>
+      </ol>
+
+      <div class="callout">更成熟的解释不是“最后一步也优化了”，而是：当前 treatment 主要完成了“把用户更高比例地送到末端”，但末端收口摩擦本身仍然存在。</div>
+
+      <h2>9. 渠道异质性</h2>
+      <table>
+        <thead>
+          <tr><th>Channel</th><th>Control / Treatment n</th><th>Uplift</th><th>95% CI</th><th>Holm-adjusted p</th><th>Priority proxy</th></tr>
+        </thead>
+        <tbody>
+          <tr><td>Referral</td><td>4,156 / 4,070</td><td>+5.65 ppt</td><td>[3.85, 7.46]</td><td>&lt; 0.001</td><td>465</td></tr>
+          <tr><td>Paid social</td><td>5,991 / 6,026</td><td>+5.59 ppt</td><td>[4.32, 6.86]</td><td>&lt; 0.001</td><td>672</td></tr>
+          <tr><td>Offline broker</td><td>3,813 / 3,664</td><td>+4.98 ppt</td><td>[3.04, 6.92]</td><td>&lt; 0.001</td><td>372</td></tr>
+          <tr><td>Content / SEO</td><td>3,809 / 3,649</td><td>+4.41 ppt</td><td>[2.61, 6.22]</td><td>&lt; 0.001</td><td>329</td></tr>
+          <tr><td>App store</td><td>5,487 / 5,553</td><td>+3.43 ppt</td><td>[2.02, 4.85]</td><td>&lt; 0.001</td><td>379</td></tr>
+        </tbody>
+      </table>
+
+      <h2>10. 局限性</h2>
+      <ol>
+        <li>这是 synthetic-data 作品集案例，不应把数值本身当作真实券商经营结论。</li>
+        <li>当前 treatment 是组合式改动，只能识别组合效果，不能识别单个设计元素的独立贡献。</li>
+        <li>7-day retention 与 first-deposit 只代表短期质量，不替代长期交易活跃、LTV 或合规风险结果。</li>
+        <li>Detectability 展示的是已实现样本规模下的近似 MDE，不等同于正式项目中的事前 power plan。</li>
+        <li>本报告新增了 SRM、污染、跨设备、成熟窗截断与 novelty effect 讨论，目的是补足“结果可信度”层面的分析，而不是宣称这些威胁已由现有 synthetic data 完全排除。</li>
+      </ol>
+
+      <h2>11. 下一步建议</h2>
+      <ul>
+        <li>拆解单因素测试：表单精简 / 进度条 / FAQ 解释。</li>
+        <li>新增护栏：身份验证失败率、客服咨询量、风险问答中断率。</li>
+        <li>新增日志：assignment log、exposure log、客服人工介入标签、cross-device stitching 质量标记。</li>
+        <li>新增分层：新老客、设备类型、来源意图、是否高价值潜客。</li>
+        <li>补长期指标：首月入金、首月交易活跃、30 日留存，并按周跟踪 novelty effect 的 effect drift。</li>
+      </ul>
+
+      <h2>12. 复现方式</h2>
+      <p><code>pip install -r requirements.txt</code><br><code>python analysis.py</code></p>
+
+      <div class="footer">
+        返回项目首页：<a href="../index.html">../index.html</a>
+      </div>
+    </div>
   </div>
 </body>
 </html>
