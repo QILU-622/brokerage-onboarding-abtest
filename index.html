@@ -1,0 +1,139 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>券商 App 新客开户 A/B 实验评估 | Reproducible Portfolio Case</title>
+<style>
+:root { --bg:#ffffff; --text:#0f172a; --muted:#475569; --border:#e2e8f0; --soft:#f8fafc; --accent:#0f766e; --accent-soft:#ecfeff; }
+* { box-sizing:border-box; }
+body { margin:0; font-family:-apple-system,BlinkMacSystemFont,"Segoe UI","PingFang SC","Hiragino Sans GB","Microsoft YaHei",Arial,sans-serif; background:var(--bg); color:var(--text); line-height:1.68; }
+.wrapper { max-width:1120px; margin:0 auto; padding:36px 22px 60px; }
+h1,h2,h3 { line-height:1.2; margin:0 0 12px; }
+h1 { font-size:38px; letter-spacing:-0.02em; }
+h2 { font-size:26px; margin-top:34px; }
+h3 { font-size:18px; margin-top:18px; }
+p { margin:0 0 12px; }
+a { color:var(--accent); text-decoration:none; }
+a:hover { text-decoration:underline; }
+.hero { border:1px solid var(--border); border-radius:24px; padding:26px; background:linear-gradient(180deg, #ffffff 0%, #fbfdff 100%); }
+.badge { display:inline-block; padding:6px 10px; border-radius:999px; background:var(--accent-soft); border:1px solid #bae6fd; font-size:13px; margin-bottom:12px; }
+.subtle { color:var(--muted); max-width:920px; }
+.notice { margin-top:16px; padding:14px 16px; border:1px solid #cbd5e1; border-radius:16px; background:#f8fafc; }
+.actions { display:flex; gap:12px; flex-wrap:wrap; margin-top:18px; }
+.button { display:inline-block; padding:10px 14px; border-radius:12px; font-weight:600; border:1px solid var(--border); background:white; }
+.kpis { display:grid; grid-template-columns:repeat(auto-fit,minmax(210px,1fr)); gap:14px; margin-top:22px; }
+.card { border:1px solid var(--border); border-radius:18px; padding:18px; background:white; }
+.metric { font-size:30px; font-weight:800; margin-bottom:4px; }
+.label { color:var(--muted); font-size:14px; }
+.section-card { border:1px solid var(--border); border-radius:22px; padding:22px; background:white; margin-top:18px; }
+.grid-2 { display:grid; grid-template-columns:repeat(auto-fit,minmax(320px,1fr)); gap:16px; }
+table { width:100%; border-collapse:collapse; margin-top:10px; font-size:14px; }
+th,td { border-bottom:1px solid var(--border); padding:10px 8px; text-align:left; vertical-align:top; }
+th { color:var(--muted); font-weight:700; }
+.small { font-size:13px; color:var(--muted); }
+img { width:100%; height:auto; border:1px solid var(--border); border-radius:18px; background:white; }
+.figure { margin-top:18px; }
+.figure-title { font-size:18px; font-weight:700; margin-bottom:8px; }
+ul { margin:0; padding-left:20px; }
+li + li { margin-top:6px; }
+.footer { margin-top:34px; color:var(--muted); font-size:13px; }
+@media (max-width: 720px) { h1 { font-size:30px; } .wrapper { padding:24px 16px 44px; } }
+</style>
+</head>
+<body>
+<div class="wrapper">
+  <section class="hero">
+    <div class="badge">Synthetic data · Reproducible portfolio case · Growth / Product analytics</div>
+    <h1>券商 App 新客开户转化链路 A/B 实验评估</h1>
+    <p class="subtle">这个项目不是只展示几张图的作品页，而是一个可复现的实验评估案例：包含 user-level 随机分流、指标口径定义、balance check、漏斗诊断、双样本比例检验、精确 95% 置信区间、渠道分层与灰度建议。</p>
+    <div class="notice"><strong>边界说明：</strong>本项目使用 <strong>synthetic data</strong> 构建，目的是复现真实增长实验评估流程，而不是声称得到真实券商经营结论。</div>
+    <div class="actions">
+      <a class="button" href="https://github.com/QILU-622/brokerage-onboarding-abtest">GitHub 仓库</a>
+      <a class="button" href="reports/brokerage_abtest_report.md">分析报告</a>
+      <a class="button" href="notebooks/brokerage_abtest_analysis.ipynb">Notebook</a>
+      <a class="button" href="sql/03_onboarding_funnel.sql">SQL 示例</a>
+    </div>
+    <div class="kpis">
+      <div class="card"><div class="metric">46,218</div><div class="label">实验样本</div></div>
+      <div class="card"><div class="metric">221,046</div><div class="label">事件日志</div></div>
+      <div class="card"><div class="metric">+4.74 ppt</div><div class="label">Account-open completion uplift</div></div>
+      <div class="card"><div class="metric">+1.94 ppt</div><div class="label">7-day first-deposit uplift</div></div>
+    </div>
+  </section>
+
+  <h2>1. 业务问题与实验设计</h2>
+  <section class="section-card grid-2">
+    <div>
+      <h3>业务问题</h3>
+      <p>券商开户链路长、表单负担重、风险测评中断多。业务想验证：将“表单精简 + 进度条提示 + 关键疑问解释”打包成一组流程优化后，是否能够显著提高开户完成率，同时不损害体验质量。</p>
+      <h3>实验设置</h3>
+      <ul>
+        <li>随机化单位：<strong>user-level 50/50 assignment</strong></li>
+        <li>实验周期：<strong>2026-01-01 至 2026-03-16（75 天）</strong></li>
+        <li>Control / Treatment：<strong>23,256 / 22,962</strong></li>
+        <li>统计方法：双样本比例 z 检验 + 精确 95% CI；渠道分层使用 <strong>Holm correction</strong></li>
+      </ul>
+    </div>
+    <div>
+      <h3>指标口径</h3>
+      <table>
+        <thead><tr><th>Metric</th><th>Role</th><th>Definition</th></tr></thead>
+        <tbody>
+          <tr><td>Account-open completion rate</td><td>Primary</td><td>用户在观察窗口内完成开户的比例</td></tr>
+          <tr><td>7-day retention rate</td><td>Guardrail</td><td>分流后 7 日内仍有回访/活跃记录的比例</td></tr>
+          <tr><td>7-day complaint rate</td><td>Guardrail</td><td>分流后 7 日内产生投诉记录的比例</td></tr>
+          <tr><td>7-day first-deposit rate</td><td>Secondary business-quality</td><td>分流后 7 日内完成首次入金的比例</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </section>
+
+  <h2>2. 基线平衡性与总体结果</h2>
+  <section class="section-card">
+    <table>
+      <thead><tr><th>Dimension / Metric</th><th>Result</th><th>Interpretation</th></tr></thead>
+      <tbody>
+        <tr><td>channel balance</td><td>p = 0.205</td><td>未见显著失衡</td></tr>
+        <tr><td>device_type balance</td><td>p = 0.286</td><td>未见显著失衡</td></tr>
+        <tr><td>source_intent balance</td><td>p = 0.421</td><td>未见显著失衡</td></tr>
+        <tr><td>age_band balance</td><td>p = 0.936</td><td>未见显著失衡</td></tr>
+        <tr><td>Account-open completion</td><td>16.82% → 21.55%</td><td>+4.74 ppt, 95% CI [4.02, 5.45]</td></tr>
+        <tr><td>7-day retention</td><td>35.23% → 37.09%</td><td>+1.86 ppt, 95% CI [0.98, 2.73]</td></tr>
+        <tr><td>7-day complaint</td><td>1.28% → 1.28%</td><td>+0.00 ppt, not statistically significant</td></tr>
+        <tr><td>7-day first deposit</td><td>34.18% → 36.12%</td><td>+1.94 ppt, 95% CI [1.07, 2.81]</td></tr>
+      </tbody>
+    </table>
+  </section>
+
+  <div class="figure"><div class="figure-title">Figure 1. Cumulative stage reach</div><img src="figures/01_cumulative_funnel.png" alt="Cumulative onboarding funnel by experiment group"><p class="small">展示的是从 landing page 起累计走到各阶段的人群占比，不应误读为相邻步骤转化率。</p></div>
+  <div class="figure"><div class="figure-title">Figure 2. Step-to-step conversion</div><img src="figures/02_step_conversion.png" alt="Step-to-step conversion by experiment group"><p class="small">最大的相邻步骤改善集中在 Submit Basic Info、Risk Assessment Start 与 Risk Assessment Complete。</p></div>
+  <div class="figure"><div class="figure-title">Figure 3. Primary and guardrail metrics</div><img src="figures/03_primary_guardrail_metrics.png" alt="Primary and guardrail metrics"></div>
+
+  <h2>3. 渠道分层与灰度建议</h2>
+  <section class="section-card">
+    <table>
+      <thead><tr><th>Channel</th><th>Control / Treatment n</th><th>Uplift</th><th>95% CI</th><th>Holm p</th><th>Priority proxy</th></tr></thead>
+      <tbody>
+<tr><td>Referral</td><td>4,156 / 4,070</td><td>+5.65 ppt</td><td>[3.85, 7.46]</td><td>< 0.001</td><td>465</td></tr>
+<tr><td>Paid social</td><td>5,991 / 6,026</td><td>+5.59 ppt</td><td>[4.32, 6.86]</td><td>< 0.001</td><td>672</td></tr>
+<tr><td>Offline broker</td><td>3,813 / 3,664</td><td>+4.98 ppt</td><td>[3.04, 6.92]</td><td>< 0.001</td><td>372</td></tr>
+<tr><td>Content / SEO</td><td>3,809 / 3,649</td><td>+4.41 ppt</td><td>[2.61, 6.22]</td><td>< 0.001</td><td>329</td></tr>
+<tr><td>App store</td><td>5,487 / 5,553</td><td>+3.43 ppt</td><td>[2.02, 4.85]</td><td>< 0.001</td><td>379</td></tr>
+
+      </tbody>
+    </table>
+    <ul>
+      <li><strong>第一阶段建议：</strong>先在 <strong>Paid social</strong> 与 <strong>Referral</strong> 灰度上线。</li>
+      <li><strong>原因：</strong>两者同时具备较高 uplift 和较高业务价值，不应只看 uplift 点估计，还要结合 volume 与 risk。</li>
+      <li><strong>下一轮：</strong>把 bundled treatment 拆成单因素或 2×2 设计，避免归因不清。</li>
+    </ul>
+  </section>
+
+  <div class="figure"><div class="figure-title">Figure 4. Channel uplift with 95% confidence intervals</div><img src="figures/04_channel_uplift.png" alt="Channel uplift by acquisition channel"></div>
+  <div class="figure"><div class="figure-title">Figure 5. Exact confidence intervals for key metrics</div><img src="figures/05_overall_effects_ci.png" alt="Uplift by metric with exact 95% confidence intervals"></div>
+
+  <div class="footer">建议同时更新 GitHub About 区域中的 description / website / topics；建议文案已放在 <code>docs/github_about.txt</code>。</div>
+</div>
+</body>
+</html>
