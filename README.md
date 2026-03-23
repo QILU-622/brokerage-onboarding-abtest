@@ -162,9 +162,9 @@
 
 - `index.html`：静态展示页
 - `analysis.py`：Python 分析脚本
-- `brokerage_abtest_analysis.ipynb`：Notebook
-- `brokerage_abtest_report.md`：结果报告
-- `balance_check.sql`：平衡性检查 SQL
+- `notebooks/brokerage_abtest_analysis.ipynb`：Notebook
+- `reports/brokerage_abtest_report.md`：结果报告
+- `sql/`：SQL 查询脚本目录（含平衡性检查、指标汇总、漏斗与分渠道分析）
 - `01_onboarding_funnel.png`
 - `02_primary_metrics.png`
 - `03_channel_uplift.png`
