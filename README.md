@@ -1,57 +1,187 @@
-# Brokerage App Onboarding A/B Test Evaluation  
-## 券商 App 新客开户转化链路 A/B 实验评估
+# 券商 App 新客开户转化链路 A/B 实验评估与上线决策
 
-> **定位**：面向数据分析 / 增长分析 / 产品分析岗位的完整作品集项目。  
-> **特点**：可复现、指标口径明确、方法链条完整、仓库结构与实际文件一致。  
-> **边界**：所有数据均为 **synthetic data**，仅用于复现真实实验评估流程，不包含任何真实券商用户信息。
+> 面向数据分析 / 增长分析岗位的完整作品集项目。  
+> 数据为 **synthetic data**，仅用于复现真实业务中的实验评估、漏斗诊断、分层灰度与上线建议，不包含任何真实券商用户信息。
 
-## 1. Business question / 业务问题
+## 1. 项目一句话概述
 
-券商开户链路长、步骤多、信息负担重。这个项目模拟了一轮 user-level 随机分流实验，评估一组组合式流程优化——**表单精简 + 进度条提示 + 关键疑问解释**——是否能够显著提升开户完成率，同时不伤害用户体验护栏。
+本项目模拟一个券商 App 新客开户流程优化实验，对比原始流程与“**表单精简 + 进度条提示 + 关键疑问解释**”方案，验证流程优化是否能够显著提升开户完成率，并在不伤害用户体验护栏的前提下，给出更接近真实业务场景的上线建议。
 
-## 2. What this repo demonstrates / 这个仓库展示什么
+---
 
-- **Experiment design**：user-level randomization、primary/guardrail metrics、MDE awareness  
-- **Statistical evaluation**：two-sample proportion tests、exact 95% CIs、Holm multiple-comparison correction  
-- **Funnel diagnosis**：同时区分 cumulative reach 与 step-to-step conversion  
-- **Business interpretation**：不只报显著性，还给出 rollout priority 与下一轮实验设计建议  
-- **Reproducibility**：数据、SQL、Python、report、figures、notebook 全部在仓库中闭环  
+## 2. 业务背景
 
-## 3. Data scope / 数据范围
+券商开户链路通常较长，涉及基础信息填写、身份验证、风险测评、绑卡与开户注册等多个高摩擦步骤。业务侧的核心问题不是“有没有 uplift”，而是：
 
-- Users: **46,218**
-- Event logs: **221,046**
-- Experiment window: **2026-01-01 to 2026-03-16**
-- Groups: **Control = 23,256**, **Treatment = 22,962**
+- uplift 是否可靠；
+- uplift 发生在哪个阶段；
+- 是否伤害了体验护栏；
+- 应该先在什么渠道灰度；
+- 下一轮实验该如何继续拆解归因。
 
-## 4. Headline results / 关键结果
+---
 
-| Metric | Control | Treatment | Uplift | 95% CI | p-value |
-|---|---:|---:|---:|---:|---:|
-| Account-open completion rate | 16.82% | 21.55% | +4.74 ppt | [4.02, 5.45] | < 0.001 |
-| 7-day retention rate | 35.23% | 37.09% | +1.86 ppt | [0.98, 2.73] | < 0.001 |
-| 7-day complaint rate | 1.28% | 1.28% | +0.00 ppt | [-0.20, 0.21] | 0.975 |
-| 7-day first-deposit rate | 34.18% | 36.12% | +1.94 ppt | [1.07, 2.81] | < 0.001 |
+## 3. 核心假设
 
-## 5. Repository structure / 实际仓库结构
+如果通过：
 
-```text
-brokerage-onboarding-abtest-improved/
-├── analysis.py
-├── index.html
-├── requirements.txt
-├── data/
-├── docs/
-├── figures/
-├── notebooks/
-├── reports/
-├── results/
-└── sql/
-```
+- 表单精简，减少输入成本；
+- 进度条提示，降低流程不确定性；
+- 关键疑问解释，降低风险测评与身份验证阶段的理解成本；
 
-## 6. Reproduce / 复现方式
+则新客开户完成率应显著提升，同时不应显著提高投诉率，并有机会带动更好的短期留存与首充表现。
 
-```bash
-pip install -r requirements.txt
-python analysis.py
-```
+---
+
+## 4. 数据范围
+
+- 实验样本：**46,218** 名用户
+- 事件日志：**221,046** 条
+- 观测窗口：**2026-01-01 至 2026-03-16（75 天）**
+- 主要数据文件：
+  - `ab_assignment.csv`
+  - `onboarding_events.csv`
+  - `post_metrics.csv`
+
+---
+
+## 5. 实验设计
+
+### 随机化方式
+
+- **user-level 50/50 分流**
+- Control：23,256
+- Treatment：22,962
+
+### 指标体系
+
+- **Primary metric**：开户完成率
+- **Guardrail metrics**：7 日留存率、7 日投诉率
+- **Exploratory metric**：7 日首充率
+
+### 方法框架
+
+- Balance check（平衡性检查）
+- Cumulative funnel（累计漏斗）
+- Step-to-step conversion（相邻步骤转化）
+- Two-sample proportion test（双样本比例检验）
+- 95% confidence interval
+- Holm correction（渠道分层多重比较校正）
+
+### 识别能力
+
+按当前样本规模估算，在 **α = .05、80% power** 条件下，主指标约可识别 **0.99 ppt** 的绝对 uplift；本实验观察到的 uplift 为 **4.74 ppt**。
+
+---
+
+## 6. 关键结果
+
+| 指标 | Control | Treatment | 绝对变化 | 95% CI | 结论 |
+|---|---:|---:|---:|---|---|
+| 开户完成率 | 16.82% | 21.55% | **+4.74 ppt** | [4.02, 5.45] | 主指标显著提升 |
+| 7 日留存率 | 35.23% | 37.09% | **+1.86 ppt** | [0.98, 2.73] | 留存同步改善 |
+| 7 日投诉率 | 1.277% | 1.280% | +0.00 ppt | [-0.20, 0.21] | 无显著差异 |
+| 7 日首充率（探索性） | 34.18% | 36.12% | **+1.94 ppt** | [1.07, 2.81] | 商业结果方向一致 |
+
+---
+
+## 7. 漏斗诊断结论
+
+这个项目最关键的价值，不在于“treatment 显著提升转化”，而在于解释了：
+
+> **为什么有效，以及效果集中发生在哪一段。**
+
+### 主要提升阶段
+
+- `start_onboarding → submit_basic_info`：**+7.14 ppt**
+- `id_verification_pass → risk_assessment_start`：**+4.40 ppt**
+- `risk_assessment_start → risk_assessment_complete`：**+5.11 ppt**
+
+### 重要发现
+
+整体 uplift 并不是因为最后一步变强。相反，
+
+- `bind_bank_card → account_open_complete` 的 step conversion 略降 **0.94 ppt**。
+
+这说明 treatment 的核心价值来自于：
+
+- 更早阶段的认知负担下降；
+- 更少的填写放弃；
+- 更顺畅地推进到风险测评完成。
+
+这是一个比“最终转化提升”更强的面试表达，因为它体现了对用户行为与业务路径的理解。
+
+---
+
+## 8. 分层结果与灰度建议
+
+| 渠道 | Control | Treatment | Uplift | 建议 |
+|---|---:|---:|---:|---|
+| Referral | 19.95% | 25.60% | **+5.65 ppt** | 第一优先级灰度 |
+| Paid social | 12.05% | 17.64% | **+5.59 ppt** | 第一优先级灰度 |
+| Offline broker | 21.79% | 26.77% | +4.98 ppt | 第二优先级 |
+| Content / SEO | 17.48% | 21.90% | +4.41 ppt | 第二优先级 |
+| App store | 15.73% | 19.16% | +3.43 ppt | 保守推进 |
+
+### 推荐动作
+
+- 第一阶段：优先在 **Referral + Paid social** 渠道灰度上线；
+- 灰度期间持续监控：
+  - 7 日投诉率
+  - 身份验证失败率
+  - 客服咨询量
+  - 首充率
+  - 高价值用户激活质量
+- 下一轮：将当前多因素 treatment 拆解为单因素实验，提升归因清晰度。
+
+---
+
+## 9. 业务影响的稳健表达
+
+如果没有真实 ARPU / LTV 数据，不建议硬编“收入提升多少”。更稳妥的业务表达方式是：
+
+> 若同等 uplift 可稳定外推，则每 10 万 landing 用户大致可新增：
+
+- **4,736 个开户完成**
+- **1,858 个 7 日留存用户**
+- **1,940 个 7 日首充账户**
+
+这种表达既体现商业意识，也避免了对真实财务结果的过度假设。
+
+---
+
+## 10. 局限性
+
+- 数据为 synthetic data，目标是复现实验评估逻辑，而非声称真实业务结论；
+- 当前 treatment 为组合改动，只能识别组合效果，不能区分单个设计元素的独立贡献；
+- 7 日留存与 7 日首充仍为短期结果，不能替代长期入金质量、长期交易活跃或客户生命周期价值。
+
+---
+
+## 11. 仓库文件
+
+- `index.html`：静态展示页
+- `analysis.py`：Python 分析脚本
+- `brokerage_abtest_analysis.ipynb`：Notebook
+- `brokerage_abtest_report.md`：结果报告
+- `balance_check.sql`：平衡性检查 SQL
+- `01_onboarding_funnel.png`
+- `02_primary_metrics.png`
+- `03_channel_uplift.png`
+- `04_confidence_intervals.png`
+
+---
+
+## 12. 这个项目在面试里怎么讲
+
+建议用这条逻辑线：
+
+1. **业务问题**：开户链路长，前中段 drop-off 高。  
+2. **实验假设**：降低认知负担与流程不确定性。  
+3. **实验设计**：user-level randomisation + primary / guardrail metrics。  
+4. **结果**：主指标显著提升，留存同步改善，投诉不显著恶化。  
+5. **诊断**：效果主要发生在基础信息与风险测评阶段，而不是最后一步。  
+6. **动作**：按渠道灰度，而不是直接全量。  
+7. **下一步**：拆解单因素实验，补长期价值指标。  
+
+这样表达会比单纯说“实验显著了，所以可以上线”更像成熟的数据分析候选人。
