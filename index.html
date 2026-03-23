@@ -4,258 +4,421 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>券商 App 新客开户 A/B 实验评估｜Portfolio Case</title>
-  <meta name="description" content="使用 synthetic data 复现券商开户链路 A/B 实验评估，覆盖实验设计、漏斗诊断、渠道分层、置信区间与上线建议。" />
   <style>
     :root{
-      --bg:#f5f7fb;
-      --panel:#ffffff;
-      --ink:#0f172a;
-      --muted:#475569;
-      --soft:#64748b;
-      --line:#dbe2ea;
-      --accent:#1d4ed8;
-      --good:#166534;
-      --warn:#92400e;
-      --shadow:0 10px 30px rgba(15,23,42,.08);
-      --radius:20px;
-      --max:1200px;
+      --bg:#0b1020;
+      --panel:#10172b;
+      --panel-2:#151f39;
+      --text:#e8edf7;
+      --muted:#aab6cf;
+      --line:#253251;
+      --accent:#65d6a4;
+      --accent-2:#7cb7ff;
+      --warn:#ffd166;
+      --danger:#ff7b7b;
+      --shadow:0 16px 40px rgba(0,0,0,.28);
+      --radius:18px;
+      --max:1180px;
     }
     *{box-sizing:border-box}
     html{scroll-behavior:smooth}
-    body{margin:0;font-family:-apple-system,BlinkMacSystemFont,"Segoe UI","PingFang SC","Hiragino Sans GB","Microsoft YaHei",sans-serif;color:var(--ink);background:linear-gradient(180deg,#eef3ff 0%, #f8fafc 16%, #f5f7fb 100%);line-height:1.65}
-    a{color:var(--accent);text-decoration:none}
+    body{
+      margin:0;
+      font:16px/1.65 -apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,"PingFang SC","Hiragino Sans GB","Microsoft YaHei",sans-serif;
+      color:var(--text);
+      background:
+        radial-gradient(circle at top left, rgba(124,183,255,.16), transparent 28%),
+        radial-gradient(circle at top right, rgba(101,214,164,.10), transparent 24%),
+        linear-gradient(180deg, #0a0f1d 0%, #0b1020 100%);
+    }
+    a{color:#b9d6ff;text-decoration:none}
     a:hover{text-decoration:underline}
-    .wrap{width:min(var(--max), calc(100% - 32px));margin:0 auto}
-    .topbar{position:sticky;top:0;z-index:20;backdrop-filter:blur(10px);background:rgba(245,247,251,.86);border-bottom:1px solid rgba(219,226,234,.7)}
-    .topbar .inner{display:flex;align-items:center;justify-content:space-between;gap:20px;padding:14px 0}
-    .brand{font-weight:800;letter-spacing:.2px;font-size:14px;color:#0b1220}
-    .nav{display:flex;gap:18px;flex-wrap:wrap;font-size:14px}
-    .hero{padding:56px 0 28px}
-    .hero-grid{display:grid;grid-template-columns:1.35fr .95fr;gap:22px;align-items:stretch}
-    .panel{background:var(--panel);border:1px solid var(--line);border-radius:var(--radius);box-shadow:var(--shadow)}
-    .hero-main{padding:34px;background:radial-gradient(circle at top right, rgba(29,78,216,.10), transparent 30%),radial-gradient(circle at left bottom, rgba(15,118,110,.10), transparent 26%),#fff}
-    .eyebrow{display:inline-flex;align-items:center;gap:8px;border:1px solid #c7d2fe;color:#3730a3;background:#eef2ff;padding:7px 12px;border-radius:999px;font-size:13px;font-weight:700;margin-bottom:14px}
-    h1{margin:0 0 14px;font-size:clamp(30px,4vw,46px);line-height:1.12;letter-spacing:-.02em}
-    .hero p{margin:0 0 14px;color:var(--muted);font-size:16px}
-    .hero-note{margin-top:18px;padding:16px 18px;border:1px solid #dbeafe;background:#f8fbff;border-radius:16px;color:#1e3a8a;font-size:14px}
-    .btns{display:flex;gap:12px;flex-wrap:wrap;margin-top:20px}
-    .btn{display:inline-flex;align-items:center;gap:8px;padding:12px 16px;border-radius:12px;font-weight:700;font-size:14px;border:1px solid var(--line);background:#fff}
-    .btn.primary{background:var(--ink);color:#fff;border-color:var(--ink)}
-    .hero-side{padding:22px;display:grid;grid-template-columns:repeat(2,1fr);gap:14px;align-content:start}
-    .kpi{padding:18px;border-radius:18px;background:linear-gradient(180deg,#fff 0%, #fbfdff 100%);border:1px solid var(--line)}
-    .kpi .label{font-size:13px;color:var(--soft);margin-bottom:8px}
-    .kpi .value{font-size:28px;font-weight:800;line-height:1.08;letter-spacing:-.02em}
-    .kpi .sub{font-size:13px;color:var(--muted);margin-top:7px}
-    .section{padding:18px 0}
-    .section h2{font-size:28px;margin:0 0 10px;letter-spacing:-.02em}
-    .lead{color:var(--muted);margin:0 0 20px;font-size:16px}
-    .summary-grid,.method-grid,.insight-grid,.limit-grid,.repo-grid{display:grid;gap:16px}
-    .summary-grid{grid-template-columns:repeat(4,1fr)}
-    .method-grid{grid-template-columns:repeat(4,1fr)}
-    .insight-grid{grid-template-columns:repeat(3,1fr)}
-    .limit-grid{grid-template-columns:repeat(2,1fr)}
-    .repo-grid{grid-template-columns:repeat(3,1fr)}
-    .card{padding:22px}
-    .card h3{margin:0 0 10px;font-size:18px}
-    .card p,.card li{color:var(--muted);margin:0}
-    .metric-tag{display:inline-block;padding:6px 10px;border-radius:999px;font-size:12px;font-weight:700;margin-bottom:12px}
-    .tag-blue{background:#eff6ff;color:#1d4ed8}
-    .tag-green{background:#ecfdf5;color:#047857}
-    .tag-violet{background:#f5f3ff;color:#7c3aed}
-    .tag-amber{background:#fffbeb;color:#b45309}
-    .big{font-size:26px;font-weight:800;line-height:1.1;letter-spacing:-.02em;margin-bottom:8px}
-    .small{font-size:13px;color:var(--soft)}
-    .two-col{display:grid;grid-template-columns:1.05fr .95fr;gap:18px}
-    .table-wrap{overflow:auto;border:1px solid var(--line);border-radius:18px;background:#fff}
-    table{border-collapse:collapse;width:100%;min-width:720px}
-    th,td{padding:14px 16px;text-align:left;border-bottom:1px solid #e8edf3;vertical-align:top}
-    th{font-size:13px;color:#334155;background:#f8fafc}
-    td{font-size:14px;color:#0f172a}
+    .wrap{max-width:var(--max);margin:0 auto;padding:0 24px}
+    .hero{
+      padding:34px 0 20px;
+      border-bottom:1px solid rgba(255,255,255,.06);
+      background:linear-gradient(180deg, rgba(255,255,255,.02), transparent);
+      position:sticky;top:0;backdrop-filter: blur(12px);z-index:10;
+    }
+    .eyebrow{
+      color:var(--muted);
+      letter-spacing:.08em;
+      text-transform:uppercase;
+      font-size:12px;
+      margin-bottom:10px;
+    }
+    h1{
+      font-size:clamp(32px,5vw,54px);
+      line-height:1.1;
+      margin:0 0 8px;
+      letter-spacing:-.02em;
+    }
+    .subtitle{
+      font-size:20px;
+      color:#d4def2;
+      margin-bottom:14px;
+    }
+    .lead{
+      max-width:920px;
+      color:var(--muted);
+      margin:0 0 18px;
+    }
+    .top-links,.nav{
+      display:flex;flex-wrap:wrap;gap:10px 12px;
+    }
+    .pill{
+      display:inline-flex;align-items:center;gap:8px;
+      padding:9px 12px;border:1px solid rgba(255,255,255,.08);
+      border-radius:999px;background:rgba(255,255,255,.04);
+      color:var(--text);font-size:14px;text-decoration:none;
+    }
+    .nav{margin-top:14px}
+    .nav a{font-size:14px;color:var(--muted)}
+    .section{padding:38px 0}
+    .section h2{
+      font-size:30px;
+      margin:0 0 12px;
+      letter-spacing:-.02em;
+    }
+    .section h3{
+      font-size:20px;
+      margin:24px 0 8px;
+    }
+    .section p{margin:10px 0;color:#d9e2f4}
+    .note{color:var(--muted)}
+    .grid{
+      display:grid;
+      gap:16px;
+    }
+    .stats{
+      grid-template-columns:repeat(4, minmax(0,1fr));
+      margin-top:22px;
+    }
+    .card{
+      background:linear-gradient(180deg, rgba(255,255,255,.035), rgba(255,255,255,.02));
+      border:1px solid rgba(255,255,255,.08);
+      border-radius:var(--radius);
+      padding:18px 18px 16px;
+      box-shadow:var(--shadow);
+    }
+    .stat-label{font-size:13px;color:var(--muted);margin-bottom:10px}
+    .stat-value{font-size:34px;font-weight:700;line-height:1.1;margin-bottom:6px}
+    .stat-sub{font-size:14px;color:#c9d4eb}
+    .two-col{
+      grid-template-columns:1.18fr .82fr;
+      align-items:start;
+    }
+    .split{
+      grid-template-columns:repeat(2,minmax(0,1fr));
+      align-items:start;
+    }
+    .risk-grid{
+      grid-template-columns:repeat(2,minmax(0,1fr));
+    }
+    .risk-card h3{
+      display:flex;align-items:center;gap:10px;
+      margin-top:0;font-size:18px;
+    }
+    .badge{
+      display:inline-flex;align-items:center;justify-content:center;
+      min-width:30px;height:30px;padding:0 10px;border-radius:999px;
+      background:rgba(124,183,255,.14);color:#d9e9ff;font-size:12px;font-weight:700;
+      border:1px solid rgba(124,183,255,.24);
+    }
+    .risk-level{
+      display:inline-block;
+      margin-top:10px;
+      font-size:12px;
+      color:#dbe8ff;
+      padding:4px 8px;
+      border-radius:999px;
+      border:1px solid rgba(255,255,255,.08);
+      background:rgba(255,255,255,.04);
+    }
+    table{
+      width:100%;
+      border-collapse:collapse;
+      margin-top:14px;
+      overflow:hidden;
+      border-radius:14px;
+      background:rgba(255,255,255,.02);
+      border:1px solid rgba(255,255,255,.08);
+    }
+    th,td{
+      padding:12px 14px;
+      border-bottom:1px solid rgba(255,255,255,.06);
+      text-align:left;
+      vertical-align:top;
+    }
+    th{
+      font-size:13px;
+      color:#d9e5fb;
+      background:rgba(255,255,255,.04);
+      font-weight:700;
+    }
+    td{color:#d2dcf0}
     tr:last-child td{border-bottom:none}
-    .mono{font-variant-numeric:tabular-nums}
-    .good{color:var(--good);font-weight:700}
-    .neutral{color:#475569;font-weight:700}
-    .warning{color:var(--warn);font-weight:700}
-    .figure-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:18px}
-    .figure-card{overflow:hidden}
-    .figure-card img{display:block;width:100%;height:auto;background:#fff;border-top-left-radius:20px;border-top-right-radius:20px;border-bottom:1px solid var(--line)}
-    .figure-card .body{padding:18px 20px}
-    .figure-card h3{margin:0 0 8px;font-size:18px}
-    .bullet{display:grid;gap:12px;margin-top:8px}
-    .bullet .item{padding:14px 16px;border-radius:16px;background:#f8fafc;border:1px solid #e6edf5;color:var(--muted)}
-    .footer{padding:22px 0 50px;color:var(--soft);font-size:14px}
-    .divider{height:1px;background:linear-gradient(90deg,transparent,#dbe2ea,transparent);margin:18px 0 2px}
-    ul.clean{padding-left:18px;margin:0}
-    code{background:#f1f5f9;padding:2px 6px;border-radius:8px}
-    @media (max-width: 1080px){.hero-grid,.two-col,.summary-grid,.method-grid,.insight-grid,.figure-grid,.repo-grid,.limit-grid{grid-template-columns:1fr 1fr}}
-    @media (max-width: 760px){.hero-grid,.two-col,.summary-grid,.method-grid,.insight-grid,.figure-grid,.repo-grid,.limit-grid{grid-template-columns:1fr}.hero-side{grid-template-columns:1fr 1fr}.topbar .inner{align-items:flex-start;flex-direction:column}}
+    ul{
+      margin:12px 0 0;
+      padding-left:18px;
+      color:#d6e0f2;
+    }
+    li{margin:8px 0}
+    .callout{
+      border-left:4px solid var(--accent);
+      padding:16px 18px;
+      background:rgba(101,214,164,.08);
+      border-radius:12px;
+      margin:16px 0 0;
+      color:#e7fff6;
+    }
+    .warn{
+      border-left-color:var(--warn);
+      background:rgba(255,209,102,.10);
+      color:#fff7df;
+    }
+    .danger{
+      border-left-color:var(--danger);
+      background:rgba(255,123,123,.10);
+      color:#fff0f0;
+    }
+    .muted-box{
+      background:rgba(255,255,255,.03);
+      border:1px solid rgba(255,255,255,.06);
+      padding:16px 18px;
+      border-radius:14px;
+    }
+    .fig-grid{
+      grid-template-columns:repeat(2,minmax(0,1fr));
+      margin-top:14px;
+    }
+    figure{
+      margin:0;
+      background:rgba(255,255,255,.03);
+      border:1px solid rgba(255,255,255,.08);
+      border-radius:18px;
+      overflow:hidden;
+      box-shadow:var(--shadow);
+    }
+    figure img{display:block;width:100%;height:auto;background:#fff}
+    figcaption{
+      padding:12px 14px 14px;
+      font-size:14px;
+      color:#d4def2;
+    }
+    .footer{
+      border-top:1px solid rgba(255,255,255,.06);
+      padding:26px 0 44px;
+      color:var(--muted);
+      font-size:14px;
+    }
+    code{
+      font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;
+      background:rgba(255,255,255,.06);
+      border:1px solid rgba(255,255,255,.08);
+      padding:2px 6px;
+      border-radius:8px;
+      color:#eef4ff;
+    }
+    @media (max-width: 980px){
+      .stats,.two-col,.split,.risk-grid,.fig-grid{grid-template-columns:1fr}
+      .hero{position:static}
+    }
   </style>
 </head>
 <body>
-  <div class="topbar">
-    <div class="wrap inner">
-      <div class="brand">BROKERAGE ONBOARDING A/B TEST · PORTFOLIO CASE</div>
-      <div class="nav">
+  <header class="hero">
+    <div class="wrap">
+      <div class="eyebrow">BROKERAGE ONBOARDING A/B TEST · PORTFOLIO CASE</div>
+      <h1>券商 App 新客开户转化链路</h1>
+      <div class="subtitle">A/B 实验评估与上线决策</div>
+      <p class="lead">
+        这个分析案例基于 synthetic data 复现券商开户流程优化实验：从业务问题定义、随机分流检查、漏斗诊断、分层 uplift、
+        置信区间，到灰度上线建议，完整呈现从问题定义到落地决策的分析流程。
+      </p>
+      <p class="lead note">
+        重点关注：效果来源、关键改善环节、渠道灰度顺序、实验风险与有效性威胁、以及上线后监控指标。
+        本项目不披露真实券商业务数据，以下结果与图表基于 synthetic data 生成，用于方法演示。
+      </p>
+
+      <div class="top-links">
+        <a class="pill" href="https://github.com/QILU-622/brokerage-onboarding-abtest" target="_blank" rel="noreferrer">GitHub 仓库</a>
+        <a class="pill" href="reports/brokerage_abtest_report.html">分析报告</a>
+        <a class="pill" href="https://github.com/QILU-622/brokerage-onboarding-abtest/blob/main/notebooks/brokerage_abtest_analysis.ipynb" target="_blank" rel="noreferrer">Notebook</a>
+        <a class="pill" href="https://github.com/QILU-622/brokerage-onboarding-abtest/tree/main/sql" target="_blank" rel="noreferrer">SQL 查询</a>
+      </div>
+
+      <nav class="nav">
         <a href="#summary">结论摘要</a>
         <a href="#design">实验设计</a>
-        <a href="#results">结果</a>
-        <a href="#diagnosis">漏斗诊断</a>
-        <a href="#segments">分层与灰度</a>
+        <a href="#threats">实验风险</a>
+        <a href="#results">实验结果</a>
+        <a href="#funnel">漏斗诊断</a>
+        <a href="#channel">分层与灰度</a>
         <a href="#figures">图表</a>
-      </div>
-    </div>
-  </div>
-
-  <header class="hero">
-    <div class="wrap hero-grid">
-      <section class="panel hero-main">
-        <div class="eyebrow">Synthetic Data · Growth Analytics · Experiment Evaluation</div>
-        <h1>券商 App 新客开户转化链路<br/>A/B 实验评估与上线决策</h1>
-        <p>这个分析案例基于 <strong>synthetic data</strong> 复现券商开户流程优化实验：从业务问题定义、随机分流检查、漏斗诊断、分层 uplift、置信区间，到灰度上线建议，完整呈现从问题定义到落地决策的分析流程。</p>
-        <p>重点关注<strong>效果来源、关键改善环节、渠道灰度顺序与上线后监控指标</strong>。</p>
-        <div class="hero-note"><strong>数据说明：</strong>本项目不披露真实券商业务数据，以下结果与图表基于 synthetic data 生成，用于复现完整的实验评估过程。</div>
-        <div class="btns">
-          <a class="btn primary" href="https://github.com/QILU-622/brokerage-onboarding-abtest" target="_blank" rel="noreferrer">GitHub 仓库</a>
-          <a class="btn" href="https://github.com/QILU-622/brokerage-onboarding-abtest/blob/main/reports/brokerage_abtest_report.md" target="_blank" rel="noreferrer">分析报告</a>
-          <a class="btn" href="https://github.com/QILU-622/brokerage-onboarding-abtest/blob/main/notebooks/brokerage_abtest_analysis.ipynb" target="_blank" rel="noreferrer">Notebook</a>
-          <a class="btn" href="https://github.com/QILU-622/brokerage-onboarding-abtest/tree/main/sql" target="_blank" rel="noreferrer">SQL 查询</a>
-        </div>
-      </section>
-
-      <aside class="panel hero-side">
-        <div class="kpi">
-          <div class="label">实验样本</div>
-          <div class="value mono">46,218</div>
-          <div class="sub">Control 23,256 · Treatment 22,962</div>
-        </div>
-        <div class="kpi">
-          <div class="label">事件日志</div>
-          <div class="value mono">221,046</div>
-          <div class="sub">75 天观测窗口</div>
-        </div>
-        <div class="kpi">
-          <div class="label">主指标 uplift</div>
-          <div class="value mono">+4.74 ppt</div>
-          <div class="sub">开户完成率 16.82% → 21.55%</div>
-        </div>
-        <div class="kpi">
-          <div class="label">7 日留存 uplift</div>
-          <div class="value mono">+1.86 ppt</div>
-          <div class="sub">95% CI [0.98, 2.73]</div>
-        </div>
-        <div class="kpi">
-          <div class="label">7 日投诉率</div>
-          <div class="value mono">n.s.</div>
-          <div class="sub">95% CI [-0.20, 0.21]</div>
-        </div>
-        <div class="kpi">
-          <div class="label">7 日首充 uplift</div>
-          <div class="value mono">+1.94 ppt</div>
-          <div class="sub">作为探索性业务结果展示</div>
-        </div>
-      </aside>
+        <a href="#limitations">局限性</a>
+      </nav>
     </div>
   </header>
 
   <main class="wrap">
-    <section class="section" id="summary">
-      <h2>结论摘要</h2>
-      <p class="lead">结论：这轮 treatment 值得进入灰度上线，更重要的是，它表明<strong>前中段信息填写与风险测评阶段</strong>才是主要流失瓶颈。</p>
-      <div class="summary-grid">
-        <article class="panel card">
-          <div class="metric-tag tag-blue">上线建议</div>
-          <div class="big">建议分渠道灰度上线</div>
-          <p>主指标显著提升，留存同步改善，投诉率未见显著恶化。优先在 <strong>Referral</strong> 与 <strong>Paid social</strong> 两个 uplift 更高且样本更稳健的渠道先行灰度。</p>
-        </article>
-        <article class="panel card">
-          <div class="metric-tag tag-green">关键机制</div>
-          <div class="big">提升主要发生在前中段</div>
-          <p>相较于“最后一步收口”，treatment 更明显地改善了 <strong>基础信息提交</strong>、<strong>进入风险测评</strong> 与 <strong>风险测评完成</strong> 三个相邻阶段之间的推进效率。</p>
-        </article>
-        <article class="panel card">
-          <div class="metric-tag tag-violet">潜在业务价值</div>
-          <div class="big">每 10 万 landing 用户</div>
-          <p>若同等 uplift 可稳定外推，对应约可多带来 <strong>4,736 个开户完成</strong>、<strong>1,858 个 7 日留存</strong> 与 <strong>1,940 个 7 日首充</strong>。</p>
-        </article>
-        <article class="panel card">
-          <div class="metric-tag tag-amber">下一步实验</div>
-          <div class="big">下一轮做单因素拆解</div>
-          <p>当前 treatment 把 <strong>表单精简</strong>、<strong>进度条提示</strong> 与 <strong>关键疑问解释</strong> 打包上线。下一轮应拆解单因素贡献，避免组合实验难以归因。</p>
-        </article>
+    <section class="section">
+      <div class="grid stats">
+        <div class="card">
+          <div class="stat-label">实验样本</div>
+          <div class="stat-value">46,218</div>
+          <div class="stat-sub">Control 23,256 · Treatment 22,962</div>
+        </div>
+        <div class="card">
+          <div class="stat-label">事件日志</div>
+          <div class="stat-value">221,046</div>
+          <div class="stat-sub">75 天观测窗口</div>
+        </div>
+        <div class="card">
+          <div class="stat-label">主指标 uplift</div>
+          <div class="stat-value">+4.74 ppt</div>
+          <div class="stat-sub">开户完成率 16.82% → 21.55%</div>
+        </div>
+        <div class="card">
+          <div class="stat-label">护栏 / 下游结果</div>
+          <div class="stat-value">+1.86 / +1.94</div>
+          <div class="stat-sub">7 日留存 uplift / 7 日首充 uplift；投诉率 n.s.</div>
+        </div>
       </div>
     </section>
 
-    <div class="divider"></div>
+    <section id="summary" class="section">
+      <h2>结论摘要</h2>
+      <div class="grid split">
+        <div class="card">
+          <h3>结论</h3>
+          <p>这轮 treatment 值得进入灰度上线，更重要的是，它表明 <strong>前中段信息填写与风险测评阶段</strong> 才是主要流失瓶颈，而不是最后一步收口。</p>
+
+          <h3>上线建议</h3>
+          <p>主指标显著提升，留存同步改善，投诉率未见显著恶化。优先在 <strong>Referral</strong> 与 <strong>Paid social</strong> 两个 uplift 更高且样本更稳健的渠道先行灰度。</p>
+
+          <h3>关键机制</h3>
+          <p>相较于“最后一步收口”，treatment 更明显地改善了 <strong>基础信息提交、进入风险测评、风险测评完成</strong> 三个相邻阶段之间的推进效率。</p>
+
+          <h3>潜在业务价值</h3>
+          <p>若同等 uplift 可稳定外推，则每 10 万 landing 用户约可多带来 <strong>4,736 个开户完成、1,858 个 7 日留存</strong> 与 <strong>1,940 个 7 日首充</strong>。</p>
+        </div>
+
+        <div class="card">
+          <h3>下一步实验</h3>
+          <p>当前 treatment 把 <strong>表单精简、进度条提示、关键疑问解释</strong> 打包上线。下一轮应拆解单因素贡献，避免组合实验难以归因。</p>
+
+          <div class="callout">
+            当前版本更接近“降低认知负担带来的结构性改善”，而不是“最后一步确认页的小修小补”。
+          </div>
+
+          <div class="callout warn">
+            这也是为什么当前建议是<strong>分渠道灰度</strong>，而不是直接全量：除了组合式 treatment 难拆解外，还需要继续验证短期 uplift 是否稳定、是否存在 novelty effect、以及是否受到曝光污染与成熟窗截断影响。
+          </div>
+        </div>
+      </div>
+    </section>
 
     <section class="section">
-      <div class="two-col">
-        <article class="panel card">
-          <h2 style="margin-top:0">业务问题与假设</h2>
-          <p class="lead" style="margin-bottom:18px">券商新客开户链路通常包含基础资料填写、身份校验、风险测评、绑卡与开户注册等多个高摩擦步骤。</p>
-          <div class="bullet">
-            <div class="item"><strong>业务痛点：</strong>流程长、表单重、解释不足，导致新客在关键环节出现显著 drop-off。</div>
-            <div class="item"><strong>核心假设：</strong>若通过表单精简、进度提示与关键疑问解释降低认知成本，开户完成率应显著提升，且不应伤害体验护栏。</div>
-            <div class="item"><strong>评估标准：</strong>不仅看主指标 uplift，还同时看留存、投诉与后续可转化业务结果，避免“用更高转化换来更差体验”。</div>
-          </div>
-        </article>
-
-        <article class="panel card">
-          <h2 style="margin-top:0">关键发现与业务含义</h2>
-          <div class="bullet">
-            <div class="item"><strong>结果稳定性：</strong>先验证随机分流后的样本平衡性，再结合样本识别能力、显著性与置信区间判断 uplift 是否稳定，而不是只依赖单一 p 值结论。</div>
-            <div class="item"><strong>关键转化变化：</strong>通过 cumulative funnel 与 step-to-step conversion 双视角，区分“整体 reach 提升”与“相邻步骤推进效率提升”，定位真正起作用的环节。</div>
-            <div class="item"><strong>落地建议：</strong>不直接全量上线，而是按渠道与用户类型逐步放量，并持续监控投诉率、身份验证失败率与客服咨询量等体验护栏。</div>
-          </div>
-        </article>
-      </div>
+      <h2>业务问题与假设</h2>
+      <p>券商新客开户链路通常包含基础资料填写、身份校验、风险测评、绑卡与开户注册等多个高摩擦步骤。</p>
+      <p>业务痛点：流程长、表单重、解释不足，导致新客在关键环节出现显著 drop-off。</p>
+      <p>核心假设：若通过表单精简、进度提示与关键疑问解释降低认知成本，开户完成率应显著提升，且不应伤害体验护栏。</p>
+      <p>评估标准：不仅看主指标 uplift，还同时看留存、投诉与后续可转化业务结果，避免“用更高转化换来更差体验”。</p>
     </section>
 
-    <section class="section" id="design">
+    <section id="design" class="section">
       <h2>实验设计</h2>
-      <p class="lead">本次实验采用 user-level 随机分流，在完整开户链路与 7 日后验指标上评估流程改动效果。</p>
-      <div class="method-grid">
-        <article class="panel card">
+      <div class="grid two-col">
+        <div class="card">
           <h3>随机化单位</h3>
-          <p><strong>user-level 50/50 分流</strong><br/>Control = 23,256<br/>Treatment = 22,962</p>
-        </article>
-        <article class="panel card">
+          <p>user-level 50/50 分流。Control = 23,256，Treatment = 22,962。</p>
+
           <h3>观测窗口</h3>
-          <p><strong>2026-01-01 至 2026-03-16</strong><br/>共 75 天，覆盖完整开户链路与 7 日后验指标。</p>
-        </article>
-        <article class="panel card">
+          <p>2026-01-01 至 2026-03-16，共 75 天，覆盖完整开户链路与 7 日后验指标。</p>
+
           <h3>指标体系</h3>
-          <p><strong>Primary：</strong>开户完成率<br/><strong>Guardrails：</strong>7 日留存率、7 日投诉率<br/><strong>Exploratory：</strong>7 日首充率</p>
-        </article>
-        <article class="panel card">
+          <ul>
+            <li><strong>Primary：</strong>开户完成率</li>
+            <li><strong>Guardrails：</strong>7 日留存率、7 日投诉率</li>
+            <li><strong>Exploratory：</strong>7 日首充率</li>
+          </ul>
+
           <h3>统计方法</h3>
-          <p>Balance check + 双样本比例检验 + 95% CI；渠道分层结果额外做 <strong>Holm 多重比较校正</strong>。</p>
-        </article>
-      </div>
-      <div class="two-col" style="margin-top:18px">
-        <article class="panel card">
+          <p>Balance check + 双样本比例检验 + 95% CI；渠道分层结果额外做 Holm 多重比较校正。</p>
+        </div>
+
+        <div class="card">
           <h3>平衡性检查</h3>
           <p>渠道、设备、来源意图、年龄段分布均未见显著失衡，说明 treatment 效果更有可能来自流程改动本身，而不是样本结构偏差。</p>
-          <ul class="clean" style="margin-top:12px">
-            <li>channel p = 0.205</li>
-            <li>device p = 0.286</li>
-            <li>intent p = 0.421</li>
-            <li>age p = 0.936</li>
+          <ul>
+            <li><code>channel</code>: p = 0.205</li>
+            <li><code>device</code>: p = 0.286</li>
+            <li><code>intent</code>: p = 0.421</li>
+            <li><code>age</code>: p = 0.936</li>
           </ul>
-        </article>
-        <article class="panel card">
+
           <h3>样本识别能力</h3>
-          <p>按当前样本规模估算，在 <strong>α = .05、80% power</strong> 条件下，主指标约可识别 <strong>0.99 ppt</strong> 的绝对 uplift，而本次实际观察到的 uplift 为 <strong>4.74 ppt</strong>。</p>
-          <div class="bullet" style="margin-top:12px">
-            <div class="item"><strong>解释含义：</strong>不是“勉强显著”，而是 effect size 显著大于当前样本的可识别下限。</div>
-          </div>
-        </article>
+          <p>按当前样本规模估算，在 α = .05、80% power 条件下，主指标约可识别 <strong>0.99 ppt</strong> 的绝对 uplift，而本次实际观察到的 uplift 为 <strong>4.74 ppt</strong>。</p>
+          <p class="note">解释含义：不是“勉强显著”，而是 observed effect 显著大于当前样本的可识别下限。</p>
+        </div>
       </div>
     </section>
 
-    <section class="section" id="results">
+    <section id="threats" class="section">
+      <h2>实验风险与有效性威胁</h2>
+      <p>为了让这个案例更接近真实业务实验，除了 balance check，还需要主动讨论可能削弱因果解释力的风险来源。下面这部分不改变当前 headline result，但会决定是否适合直接全量上线。</p>
+
+      <div class="grid risk-grid">
+        <div class="card risk-card">
+          <h3><span class="badge">01</span> SRM（Sample Ratio Mismatch）</h3>
+          <p>Control / Treatment 为 23,256 / 22,962，偏离理想 50/50 分流约 0.64%，当前看不到明显异常分流信号。它意味着本次结果没有首先被“样本比例失真”破坏。</p>
+          <p>但正式项目里，SRM 仍然应该是第一道健康检查：一旦 assignment log、exposure log 与 analysis cohort 对不上，后续所有 uplift 解释都会失去基础。</p>
+          <div class="risk-level">当前判断：未见明显 SRM 迹象，但上线必须持续监控</div>
+        </div>
+
+        <div class="card risk-card">
+          <h3><span class="badge">02</span> 污染 / Interference</h3>
+          <p>如果用户重复进入开户链路、切换渠道回流、被客服人工补救、或在实验期内触发额外运营触达，就可能让 control 与 treatment 的暴露边界变得模糊。</p>
+          <p>这会让 uplift 同时混入“流程优化效果”和“后续运营干预效果”。因此正式落地时需要锁定首曝分组、对 user_id 去重，并尽量剔除人工介入造成的二次影响。</p>
+          <div class="risk-level">当前判断：需要曝光日志来进一步排查</div>
+        </div>
+
+        <div class="card risk-card">
+          <h3><span class="badge">03</span> 跨设备 / Identity Stitching</h3>
+          <p>同一用户若在 mobile / web 或不同设备间切换，而标识未正确合并，可能出现“同一用户跨组暴露”或步骤漏记，导致整体转化被高估或低估。</p>
+          <p>这类问题在开户注册链路尤其常见，因为 OTP、银行卡验证、KYC 上传等动作往往发生在不同端口。正式项目应以稳定 account key 或 device graph 完成 join，并单独监控 cross-device overlap。</p>
+          <div class="risk-level">当前判断：这类风险不会被普通 balance check 捕捉到</div>
+        </div>
+
+        <div class="card risk-card">
+          <h3><span class="badge">04</span> 观察窗截断 / Mature-window Censoring</h3>
+          <p>实验截止到 2026-03-16，而 7 日留存、7 日首充需要完整成熟窗。如果尾部用户尚未走满 7 天，就会系统性低估 post metrics，且可能对不同组影响不对称。</p>
+          <p>因此报告时应只保留 mature cohort，或在结果页明确说明尾部 cohort 是否被截断。短期 uplift 若没有成熟窗保护，很容易把“时间不够”误读为“效果变弱”。</p>
+          <div class="risk-level">当前判断：正式分析中应明确 mature-cohort 规则</div>
+        </div>
+
+        <div class="card risk-card">
+          <h3><span class="badge">05</span> Novelty Effect</h3>
+          <p>进度条与 FAQ 解释类改动，早期可能因为“新鲜感”和更高注意力而短暂抬升启动率与风险问答完成率；如果用户适应后回落，短期 uplift 可能高于长期稳定 uplift。</p>
+          <p>这也是为什么当前更适合灰度，而不是直接全量。上线后应该按周跟踪 effect drift，观察 uplift 是否快速回落，尤其是前中段步骤而非最终开户完成率。</p>
+          <div class="risk-level">当前判断：短期正向结果并不自动等于长期稳态结果</div>
+        </div>
+
+        <div class="card risk-card">
+          <h3><span class="badge">06</span> 为什么这部分重要</h3>
+          <p>如果不主动讨论这些威胁，项目很容易看起来像“只会报显著性”的作品集案例。把风险显性化，反而更接近真实业务中的实验复盘：结果成立是一层，结果为什么值得信、能不能放量，是另一层。</p>
+          <div class="callout">
+            因此本项目的更成熟结论不是“treatment 一定完美”，而是：<strong>在当前证据下，treatment 显示出可进入灰度的正向信号，但是否直接扩量，仍取决于 SRM、污染、跨设备与成熟窗等风险能否被进一步控制。</strong>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section id="results" class="section">
       <h2>实验结果</h2>
-      <p class="lead">核心指标同时展示 effect size、95% CI 与对应业务含义。</p>
-      <div class="table-wrap panel">
+      <p>核心指标同时展示 effect size、95% CI 与对应业务含义。</p>
+      <div class="card">
         <table>
           <thead>
             <tr>
@@ -270,287 +433,214 @@
           <tbody>
             <tr>
               <td>开户完成率</td>
-              <td class="mono">16.82%</td>
-              <td class="mono">21.55%</td>
-              <td class="mono good">+4.74 ppt</td>
-              <td class="mono">[4.02, 5.45]</td>
-              <td class="good">主指标显著提升</td>
+              <td>16.82%</td>
+              <td>21.55%</td>
+              <td>+4.74 ppt</td>
+              <td>[4.02, 5.45]</td>
+              <td>主指标显著提升</td>
             </tr>
             <tr>
               <td>7 日留存率</td>
-              <td class="mono">35.23%</td>
-              <td class="mono">37.09%</td>
-              <td class="mono good">+1.86 ppt</td>
-              <td class="mono">[0.98, 2.73]</td>
-              <td class="good">体验质量同步改善</td>
+              <td>35.23%</td>
+              <td>37.09%</td>
+              <td>+1.86 ppt</td>
+              <td>[0.98, 2.73]</td>
+              <td>体验质量同步改善</td>
             </tr>
             <tr>
               <td>7 日投诉率</td>
-              <td class="mono">1.277%</td>
-              <td class="mono">1.280%</td>
-              <td class="mono neutral">+0.00 ppt</td>
-              <td class="mono">[-0.20, 0.21]</td>
-              <td class="neutral">无显著差异</td>
+              <td>1.277%</td>
+              <td>1.280%</td>
+              <td>+0.00 ppt</td>
+              <td>[-0.20, 0.21]</td>
+              <td>无显著差异</td>
             </tr>
             <tr>
               <td>7 日首充率（探索性）</td>
-              <td class="mono">34.18%</td>
-              <td class="mono">36.12%</td>
-              <td class="mono good">+1.94 ppt</td>
-              <td class="mono">[1.07, 2.81]</td>
-              <td class="good">商业结果方向一致</td>
+              <td>34.18%</td>
+              <td>36.12%</td>
+              <td>+1.94 ppt</td>
+              <td>[1.07, 2.81]</td>
+              <td>商业结果方向一致</td>
             </tr>
           </tbody>
         </table>
       </div>
     </section>
 
-    <section class="section" id="diagnosis">
+    <section id="funnel" class="section">
       <h2>漏斗诊断：效果主要发生在哪里</h2>
-      <p class="lead">为了定位 uplift 的主要来源，需要同时观察累计 reach 与相邻步骤转化率，判断改善究竟发生在哪个环节。</p>
-      <div class="two-col">
-        <article class="panel card">
-          <h3>Step-to-step conversion 变化</h3>
-          <div class="table-wrap" style="box-shadow:none;border-radius:14px">
-            <table>
-              <thead>
-                <tr>
-                  <th>相邻阶段</th>
-                  <th>Control</th>
-                  <th>Treatment</th>
-                  <th>变化</th>
-                </tr>
-              </thead>
-              <tbody>
-                <tr>
-                  <td>Landing → Start onboarding</td>
-                  <td class="mono">80.50%</td>
-                  <td class="mono">80.79%</td>
-                  <td class="mono">+0.29 ppt</td>
-                </tr>
-                <tr>
-                  <td>Start → Submit basic info</td>
-                  <td class="mono">69.90%</td>
-                  <td class="mono">77.04%</td>
-                  <td class="mono good">+7.14 ppt</td>
-                </tr>
-                <tr>
-                  <td>Submit basic info → ID pass</td>
-                  <td class="mono">81.60%</td>
-                  <td class="mono">83.73%</td>
-                  <td class="mono">+2.13 ppt</td>
-                </tr>
-                <tr>
-                  <td>ID pass → Risk assessment start</td>
-                  <td class="mono">74.41%</td>
-                  <td class="mono">78.81%</td>
-                  <td class="mono good">+4.40 ppt</td>
-                </tr>
-                <tr>
-                  <td>Risk start → Risk complete</td>
-                  <td class="mono">72.90%</td>
-                  <td class="mono">78.01%</td>
-                  <td class="mono good">+5.11 ppt</td>
-                </tr>
-                <tr>
-                  <td>Risk complete → Bind bank card</td>
-                  <td class="mono">81.72%</td>
-                  <td class="mono">82.35%</td>
-                  <td class="mono">+0.64 ppt</td>
-                </tr>
-                <tr>
-                  <td>Bind bank card → Complete</td>
-                  <td class="mono">82.63%</td>
-                  <td class="mono">81.69%</td>
-                  <td class="mono warning">-0.94 ppt</td>
-                </tr>
-              </tbody>
-            </table>
-          </div>
-        </article>
+      <p>为了定位 uplift 的主要来源，需要同时观察累计 reach 与相邻步骤转化率，判断改善究竟发生在哪个环节。</p>
 
-        <article class="panel card">
+      <div class="card">
+        <h3>Step-to-step conversion 变化</h3>
+        <table>
+          <thead>
+            <tr>
+              <th>相邻阶段</th>
+              <th>Control</th>
+              <th>Treatment</th>
+              <th>变化</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr><td>Landing → Start onboarding</td><td>80.50%</td><td>80.79%</td><td>+0.29 ppt</td></tr>
+            <tr><td>Start → Submit basic info</td><td>69.90%</td><td>77.04%</td><td>+7.14 ppt</td></tr>
+            <tr><td>Submit basic info → ID pass</td><td>81.60%</td><td>83.73%</td><td>+2.13 ppt</td></tr>
+            <tr><td>ID pass → Risk assessment start</td><td>74.41%</td><td>78.81%</td><td>+4.40 ppt</td></tr>
+            <tr><td>Risk start → Risk complete</td><td>72.90%</td><td>78.01%</td><td>+5.11 ppt</td></tr>
+            <tr><td>Risk complete → Bind bank card</td><td>81.72%</td><td>82.35%</td><td>+0.64 ppt</td></tr>
+            <tr><td>Bind bank card → Complete</td><td>82.63%</td><td>81.69%</td><td>-0.94 ppt</td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <div class="grid split" style="margin-top:16px;">
+        <div class="card">
           <h3>关键诊断</h3>
-          <div class="bullet">
-            <div class="item"><strong>最大贡献点：</strong><br/>基础信息提交阶段提升 <strong>+7.14 ppt</strong>，说明表单精简显著降低了填写摩擦与放弃率。</div>
-            <div class="item"><strong>第二贡献点：</strong><br/>进入风险测评与完成风险测评分别提升 <strong>+4.40 ppt</strong> 与 <strong>+5.11 ppt</strong>，说明进度条提示与关键疑问解释有效降低了理解成本。</div>
-            <div class="item"><strong>反直觉但很有价值的发现：</strong><br/>最后一步 <code>bind bank card → account open complete</code> 的 step conversion 略降 <strong>0.94 ppt</strong>。这意味着整体 uplift 主要来自更早阶段的推进，而不是最后一步的收口优化。</div>
-            <div class="item"><strong>结论：</strong><br/>本轮 uplift 主要来自前中段摩擦下降，而不是最后一步收口改善；整体上更接近降低认知负担带来的自然提升。</div>
+          <ul>
+            <li><strong>最大贡献点：</strong>基础信息提交阶段提升 +7.14 ppt，说明表单精简显著降低了填写摩擦与放弃率。</li>
+            <li><strong>第二贡献点：</strong>进入风险测评与完成风险测评分别提升 +4.40 ppt 与 +5.11 ppt，说明进度条提示与关键疑问解释有效降低了理解成本。</li>
+            <li><strong>整体结论：</strong>本轮 uplift 主要来自前中段摩擦下降，而不是最后一步收口改善。</li>
+          </ul>
+        </div>
+
+        <div class="card">
+          <h3>反常结果解释：为什么最后一步略降，整体结论仍然成立</h3>
+          <p><strong>现象：</strong><code>bind bank card → account open complete</code> 的 step conversion 略降 0.94 ppt，看起来与“整体正向 uplift”相反。</p>
+          <ul>
+            <li><strong>分母构成变化：</strong>treatment 把更多中等意向用户推进到了更后面阶段，最后一步的分母因此扩大，进入终点的人群结构不再与 control 完全相同。换句话说，更多人能走到末端，但其中一部分本来就不是最强意向用户，末端收口率略被摊薄是可能的。</li>
+            <li><strong>末端摩擦并未被当前改动直接触及：</strong>表单精简、进度条、FAQ 主要作用在前中段认知负担；而绑卡后的最终开户完成，往往更多受 OTP、银行卡验证、KYC 复核、外部跳转等待等因素影响。这些摩擦没有被当前 treatment 真正改掉。</li>
+            <li><strong>幅度大小不对称：</strong>末端的 -0.94 ppt 明显小于前中段 +7.14 / +4.40 / +5.11 ppt 的提升，因此 end-to-end completion 仍然显著抬升。它更像“新增流量的质量分布更广”，而不是“整体体验恶化”。</li>
+          </ul>
+          <div class="callout">
+            更成熟的解释不是“最后一步也优化了”，而是：<strong>当前 treatment 主要完成了把用户更高比例地送到末端，但末端仍保留外部验证和流程收口摩擦，因此会出现前中段显著改善、最后一步小幅回落、整体转化仍大幅上升的组合。</strong>
           </div>
-        </article>
+        </div>
       </div>
     </section>
 
-    <section class="section" id="segments">
+    <section id="channel" class="section">
       <h2>渠道分层与灰度优先级</h2>
-      <p class="lead">不是所有渠道都应该同时全量。更成熟的做法是：先看分层效果，再决定灰度先后顺序与资源投入重点。</p>
-      <div class="two-col">
-        <article class="panel card">
-          <div class="table-wrap" style="box-shadow:none;border-radius:14px">
-            <table>
-              <thead>
-                <tr>
-                  <th>渠道</th>
-                  <th>Control</th>
-                  <th>Treatment</th>
-                  <th>Uplift</th>
-                  <th>建议</th>
-                </tr>
-              </thead>
-              <tbody>
-                <tr>
-                  <td>Referral</td>
-                  <td class="mono">19.95%</td>
-                  <td class="mono">25.60%</td>
-                  <td class="mono good">+5.65 ppt</td>
-                  <td class="good">第一优先级灰度</td>
-                </tr>
-                <tr>
-                  <td>Paid social</td>
-                  <td class="mono">12.05%</td>
-                  <td class="mono">17.64%</td>
-                  <td class="mono good">+5.59 ppt</td>
-                  <td class="good">第一优先级灰度</td>
-                </tr>
-                <tr>
-                  <td>Offline broker</td>
-                  <td class="mono">21.79%</td>
-                  <td class="mono">26.77%</td>
-                  <td class="mono good">+4.98 ppt</td>
-                  <td class="neutral">第二优先级</td>
-                </tr>
-                <tr>
-                  <td>Content / SEO</td>
-                  <td class="mono">17.48%</td>
-                  <td class="mono">21.90%</td>
-                  <td class="mono good">+4.41 ppt</td>
-                  <td class="neutral">第二优先级</td>
-                </tr>
-                <tr>
-                  <td>App store</td>
-                  <td class="mono">15.73%</td>
-                  <td class="mono">19.16%</td>
-                  <td class="mono good">+3.43 ppt</td>
-                  <td class="neutral">保守推进</td>
-                </tr>
-              </tbody>
-            </table>
-          </div>
-        </article>
+      <p>不是所有渠道都应该同时全量。更成熟的做法是：先看分层效果，再决定灰度先后顺序与资源投入重点。</p>
+      <div class="card">
+        <table>
+          <thead>
+            <tr>
+              <th>渠道</th>
+              <th>Control</th>
+              <th>Treatment</th>
+              <th>Uplift</th>
+              <th>建议</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr><td>Referral</td><td>19.95%</td><td>25.60%</td><td>+5.65 ppt</td><td>第一优先级灰度</td></tr>
+            <tr><td>Paid social</td><td>12.05%</td><td>17.64%</td><td>+5.59 ppt</td><td>第一优先级灰度</td></tr>
+            <tr><td>Offline broker</td><td>21.79%</td><td>26.77%</td><td>+4.98 ppt</td><td>第二优先级</td></tr>
+            <tr><td>Content / SEO</td><td>17.48%</td><td>21.90%</td><td>+4.41 ppt</td><td>第二优先级</td></tr>
+            <tr><td>App store</td><td>15.73%</td><td>19.16%</td><td>+3.43 ppt</td><td>保守推进</td></tr>
+          </tbody>
+        </table>
 
-        <article class="panel card">
-          <h3>为什么这样灰度</h3>
-          <div class="bullet">
-            <div class="item"><strong>Referral / Paid social 优先：</strong><br/>绝对 uplift 更高，说明对高摩擦来源用户更有效，资源投入回报更直接。</div>
-            <div class="item"><strong>不是直接全量：</strong><br/>因为当前 treatment 属于多因素打包改动，且开户流程还受合规、KYC 成功率与客服承压影响，先灰度更稳妥。</div>
-            <div class="item"><strong>灰度阶段继续跟踪：</strong><br/>7 日投诉率、身份验证失败率、客服咨询量、首充率与高价值用户激活质量。</div>
-            <div class="item"><strong>策略含义：</strong><br/>当前版本更适合先在特定渠道上线，因为收益更集中、风险也更便于控制。</div>
-          </div>
-        </article>
+        <h3>为什么这样灰度</h3>
+        <ul>
+          <li><strong>Referral / Paid social 优先：</strong>绝对 uplift 更高，说明对高摩擦来源用户更有效，资源投入回报更直接。</li>
+          <li><strong>不是直接全量：</strong>当前 treatment 属于多因素打包改动，且开户流程还受合规、KYC 成功率与客服承压影响，先灰度更稳妥。</li>
+          <li><strong>灰度阶段继续跟踪：</strong>7 日投诉率、身份验证失败率、客服咨询量、首充率与高价值用户激活质量。</li>
+        </ul>
       </div>
     </section>
 
     <section class="section">
       <h2>潜在业务价值</h2>
-      <p class="lead">在缺少长期收入口径时，以下以“每 10 万 landing 用户可新增的关键行为数”表述短中期业务价值。</p>
-      <div class="insight-grid">
-        <article class="panel card">
-          <div class="metric-tag tag-blue">Completed accounts</div>
-          <div class="big mono">+4,736</div>
-          <p>按 +4.74 ppt 的开户完成率 uplift 粗略换算，每 10 万 landing 用户可多带来约 4,736 个完成开户。</p>
-        </article>
-        <article class="panel card">
-          <div class="metric-tag tag-green">7-day retained users</div>
-          <div class="big mono">+1,858</div>
-          <p>留存并未被“只追求转化率”所牺牲，反而同步提升，说明这轮优化更可能是降低摩擦而非误导用户。</p>
-        </article>
-        <article class="panel card">
-          <div class="metric-tag tag-violet">7-day funded accounts</div>
-          <div class="big mono">+1,940</div>
-          <p>首充率方向与主指标一致，可作为潜在商业价值的早期信号，但仍需配合更长期的资金留存与交易活跃指标继续验证。</p>
-        </article>
+      <p>在缺少长期收入口径时，以下以“每 10 万 landing 用户可新增的关键行为数”表述短中期业务价值。</p>
+      <div class="grid split">
+        <div class="card">
+          <div class="stat-label">Completed accounts</div>
+          <div class="stat-value">+4,736</div>
+          <div class="stat-sub">按 +4.74 ppt 的开户完成率 uplift 粗略换算，每 10 万 landing 用户可多带来约 4,736 个完成开户。</div>
+        </div>
+        <div class="card">
+          <div class="stat-label">7-day retained users</div>
+          <div class="stat-value">+1,858</div>
+          <div class="stat-sub">留存未被“只追求转化率”所牺牲，反而同步提升，说明这轮优化更可能是降低摩擦而非误导用户。</div>
+        </div>
+        <div class="card">
+          <div class="stat-label">7-day funded accounts</div>
+          <div class="stat-value">+1,940</div>
+          <div class="stat-sub">首充率方向与主指标一致，可作为潜在商业价值的早期信号，但仍需配合更长期的资金留存与交易活跃指标继续验证。</div>
+        </div>
+        <div class="card">
+          <div class="stat-label">商业解释边界</div>
+          <div class="stat-value">短期代理指标</div>
+          <div class="stat-sub">当前结果支持“更可能带来业务收益”的方向判断，但不能替代首月入金、30 日留存、交易活跃和 LTV。</div>
+        </div>
       </div>
     </section>
 
-    <section class="section" id="figures">
+    <section id="figures" class="section">
       <h2>图表</h2>
-      <p class="lead">以下图表分别对应整体漏斗 reach、主指标与护栏、渠道 uplift 以及 overall effects 的置信区间。</p>
-      <div class="figure-grid">
-        <article class="panel figure-card">
+      <p>以下图表分别对应整体漏斗 reach、主指标与护栏、渠道 uplift 以及 overall effects 的置信区间。</p>
+      <div class="grid fig-grid">
+        <figure>
           <img src="figures/01_cumulative_funnel.png" alt="Cumulative stage reach by experiment group" />
-          <div class="body">
-            <h3>Cumulative funnel reach</h3>
-            <p>用于展示从 landing page 起累计走到各阶段的人群占比，帮助判断整体链路 reach 是否系统性抬升。</p>
-          </div>
-        </article>
-        <article class="panel figure-card">
-          <img src="figures/03_primary_guardrail_metrics.png" alt="Primary and guardrail metrics" />
-          <div class="body">
-            <h3>Primary &amp; guardrail metrics</h3>
-            <p>主指标与护栏分开展示，更清楚地说明“效果提升并没有建立在体验受损之上”。</p>
-          </div>
-        </article>
-        <article class="panel figure-card">
-          <img src="figures/04_channel_uplift.png" alt="Channel uplift with CI and sample size" />
-          <div class="body">
-            <h3>Channel uplift with prioritisation</h3>
-            <p>不仅看 uplift 大小，更要结合样本量、置信区间与渠道属性做灰度优先级判断。</p>
-          </div>
-        </article>
-        <article class="panel figure-card">
-          <img src="figures/05_overall_effects_ci.png" alt="Treatment effect with exact 95% confidence intervals" />
-          <div class="body">
-            <h3>Exact confidence intervals</h3>
-            <p>用精确区间值替代“显著 / 不显著”的笼统结论，更利于呈现 effect size 与不确定性。</p>
-          </div>
-        </article>
+          <figcaption><strong>Cumulative funnel reach：</strong>展示从 landing page 起累计走到各阶段的人群占比，帮助判断整体链路 reach 是否系统性抬升。</figcaption>
+        </figure>
+        <figure>
+          <img src="figures/02_primary_guardrails.png" alt="Primary and guardrail metrics" />
+          <figcaption><strong>Primary &amp; guardrail metrics：</strong>主指标与护栏分开展示，更清楚地说明“效果提升并没有建立在体验受损之上”。</figcaption>
+        </figure>
+        <figure>
+          <img src="figures/03_channel_uplift.png" alt="Channel uplift with CI and sample size" />
+          <figcaption><strong>Channel uplift with prioritisation：</strong>不仅看 uplift 大小，更要结合样本量、置信区间与渠道属性做灰度优先级判断。</figcaption>
+        </figure>
+        <figure>
+          <img src="figures/04_effect_ci.png" alt="Treatment effect with exact 95% confidence intervals" />
+          <figcaption><strong>Exact confidence intervals：</strong>用精确区间值替代“显著 / 不显著”的笼统结论，更利于呈现 effect size 与不确定性。</figcaption>
+        </figure>
       </div>
     </section>
 
-    <section class="section">
+    <section id="limitations" class="section">
       <h2>局限性与下一步</h2>
-      <div class="limit-grid">
-        <article class="panel card">
+      <div class="grid split">
+        <div class="card">
           <h3>当前局限性</h3>
-          <ul class="clean">
-            <li>本案例使用 <strong>synthetic data</strong> 复现券商开户实验分析流程，相关结论仅用于方法演示。</li>
+          <ul>
+            <li>本案例使用 synthetic data 复现券商开户实验分析流程，相关结论仅用于方法演示。</li>
             <li>当前 treatment 为多项改动打包，因此只能识别“组合效果”，不能直接识别每个设计元素的独立贡献。</li>
             <li>7 日留存与 7 日首充仍属于短期质量指标，不能替代长期入金质量、长期交易活跃或客户生命周期价值。</li>
+            <li>本页新增讨论了 SRM、污染、跨设备、成熟窗截断与 novelty effect，但这些风险在当前案例中主要是“应被显性化并持续监控的真实威胁”，并不代表已由现有数据完全排除。</li>
           </ul>
-        </article>
-        <article class="panel card">
+        </div>
+        <div class="card">
           <h3>下一步实验建议</h3>
-          <ul class="clean">
+          <ul>
             <li>拆解单因素测试：表单精简 / 进度条 / FAQ 解释。</li>
             <li>新增护栏：身份验证失败率、客服咨询量、风险问答中断率。</li>
+            <li>新增日志：首曝日志、曝光日志、客服人工介入标签、cross-device stitching 质量标记。</li>
             <li>新增分层：新老客、设备类型、来源意图、是否高价值潜客。</li>
-            <li>补长期指标：首月入金、首月交易活跃、30 日留存。</li>
+            <li>补长期指标：首月入金、首月交易活跃、30 日留存，并按周跟踪 novelty effect 的 effect drift。</li>
           </ul>
-        </article>
+        </div>
       </div>
     </section>
 
     <section class="section">
       <h2>仓库内容</h2>
-      <div class="repo-grid">
-        <article class="panel card">
-          <h3>数据文件</h3>
-          <p><code>ab_assignment.csv</code><br/><code>onboarding_events.csv</code><br/><code>post_metrics.csv</code></p>
-        </article>
-        <article class="panel card">
-          <h3>分析文件</h3>
-          <p><code>analysis.py</code><br/><code>notebooks/brokerage_abtest_analysis.ipynb</code><br/><code>sql/</code></p>
-        </article>
-        <article class="panel card">
-          <h3>展示文件</h3>
-          <p><code>index.html</code><br/><code>README.md</code><br/><code>brokerage_abtest_report.md</code></p>
-        </article>
+      <div class="card">
+        <p><strong>数据文件：</strong> <code>ab_assignment.csv</code> · <code>onboarding_events.csv</code> · <code>post_metrics.csv</code></p>
+        <p><strong>分析文件：</strong> <code>analysis.py</code> · <code>notebooks/brokerage_abtest_analysis.ipynb</code> · <code>sql/</code></p>
+        <p><strong>展示文件：</strong> <code>index.html</code> · <code>README.md</code> · <code>reports/brokerage_abtest_report.md</code> · <code>reports/brokerage_abtest_report.html</code></p>
       </div>
     </section>
-
-    <footer class="footer">
-      <p>注：本页使用 synthetic data 复现实验评估分析场景。所有百分比变化均为绝对百分点变化（ppt）。</p>
-    </footer>
   </main>
+
+  <footer class="footer">
+    <div class="wrap">
+      注：本页使用 synthetic data 复现实验评估分析场景。所有百分比变化均为绝对百分点变化（ppt）。
+    </div>
+  </footer>
 </body>
 </html>
