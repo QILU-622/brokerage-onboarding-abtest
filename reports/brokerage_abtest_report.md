@@ -1,135 +1,160 @@
-# Brokerage App 新客开户 A/B 实验评估报告
+# 券商 App 新客开户实验复盘报告
 
-> 定位：一个可复现的 synthetic-data 作品集案例，用来展示增长分析 / 产品分析岗位在实验评估中的完整工作流。  
-> 边界：所有数据均为合成模拟数据，不包含任何真实券商用户信息，也不声称代表真实券商经营结果。  
+## 1. Executive summary
+本次实验评估的目标，是验证“表单精简 + 进度条提示 + 关键疑问解释”这一组流程优化，是否能够在不伤害体验护栏的前提下，显著提升券商 App 新客开户完成率。
 
-## 1. 业务问题
+实验结果显示：
+- 开户完成率由 **16.82%** 提升至 **21.55%**，绝对提升 **+4.74 ppt**，95% 置信区间 **[4.02, 5.45]**；
+- 7 日留存率提升 **+1.86 ppt**，95% 置信区间 **[0.98, 2.73]**；
+- 7 日投诉率变化 **+0.00 ppt**，95% 置信区间 **[-0.20, 0.21]**，未见显著恶化；
+- 7 日首充率（探索性结果）提升 **+1.94 ppt**，95% 置信区间 **[1.07, 2.81]**。
 
-券商 App 新客开户链路长、摩擦点多，业务希望验证一组组合式流程优化——表单精简 + 进度条提示 + 关键疑问解释——是否能够显著提升开户完成率，同时不伤害体验质量指标。
+因此，这轮这轮改动具备进入灰度上线的依据。
 
-## 2. 数据与实验范围
+---
 
-- 样本量：46,218 名新客  
-- 事件日志：221,046 条  
-- 实验期：2026-01-01 至 2026-03-16（75 天）  
-- 随机化单位：user-level 50/50 assignment  
-- 对照组 / 实验组：23,256 / 22,962  
+## 2. Business context
+券商新客开户是典型的高摩擦业务流程。用户需要完成多步资料填写、身份验证、风险测评与绑卡操作。实际业务中，转化率提升并不只依赖最后一步的收口，而更依赖前中段是否能顺利推进。
 
-### 2.1 数据表
+当前更需要明确的是三个决策问题：
+1. 流程优化是否真的提升了开户完成率；
+2. 效果主要来自哪个步骤；
+3. 当前阶段应直接全量，还是先进入灰度上线。
 
-| 表名 | 粒度 | 关键字段 | 用途 |
-|---|---|---|---|
-| `ab_assignment.csv` | user | `experiment_group`, `channel`, `device_type`, `source_intent`, `age_band` | 分流、分层与基线平衡性检查 |
-| `onboarding_events.csv` | event | `event_name`, `step_no`, `status`, `dwell_seconds` | 漏斗与步骤级诊断 |
-| `post_metrics.csv` | user | `account_completed`, `retention_7d`, `complaint_7d`, `first_deposit_7d`, `trade_count_7d` | 主指标、护栏指标与下游业务质量指标 |
+---
 
-## 3. 指标定义
+## 3. Experiment design
+### 3.1 随机分流
+- 分流单位：**用户层级**
+- 分流比例：**50/50**
+- 对照组：23,256
+- 实验组：22,962
 
-| 指标 | 角色 | 定义 |
-|---|---|---|
-| Account-open completion rate | Primary metric | 用户在观察窗口内完成开户的比例 |
-| 7-day retention rate | Guardrail metric | 用户分流后 7 天内仍有回访 / 活跃记录的比例 |
-| 7-day complaint rate | Guardrail metric | 用户分流后 7 天内出现投诉记录的比例 |
-| 7-day first-deposit rate | Secondary business-quality metric | 用户分流后 7 天内完成首次入金的比例 |
+### 3.2 观察窗口
+- 时间范围：**2026-01-01 至 2026-03-16**
+- 共 **75 天**
 
-## 4. 方法
+### 3.3 Metrics
+**主指标**
+- 开户完成率（account open completion rate）
 
-1. Baseline balance check：对 `channel`、`device_type`、`source_intent`、`age_band` 做列联表检验。  
-2. Overall treatment effect：对二元指标采用双样本比例 z 检验，并报告 unpooled 95% confidence intervals。  
-3. Funnel diagnostics：同时报告 cumulative reach 和 step-to-step conversion，避免把两类漏斗口径混淆。  
-4. Channel heterogeneity：按渠道分层估计 completion uplift，并使用 Holm correction 控制多重比较的 family-wise error。  
-5. Sensitivity / detectability：基于已实现样本量估算完成率的近似 MDE。  
+**护栏指标**
+- 7 日留存率
+- 7 日投诉率
 
-## 5. 基线平衡性
+**探索性指标**
+- 7 日首充率
 
-各主要分层变量均未见显著失衡：
+### 3.4 Statistical approach
+- 平衡性检查
+- 漏斗诊断
+- 双样本比例检验
+- 95% 置信区间
+- 渠道层面的 Holm 校正
 
-- `channel`: p = 0.205  
-- `device_type`: p = 0.286  
-- `source_intent`: p = 0.421  
-- `age_band`: p = 0.936  
+### 3.5 Sample detection ability
+在当前样本规模下，主指标在 **α = .05、80% power** 条件下可识别约 **0.99 ppt** 的绝对提升。本实验观察到的主指标提升为 **4.74 ppt**，明显高于识别下限。
 
-## 6. 实验风险与有效性威胁
+---
 
-### 6.1 SRM（Sample Ratio Mismatch）
-Control / Treatment 为 23,256 / 22,962，偏离理想 50/50 约 0.64%，当前看不到明显异常分流信号。  
-但正式项目里，SRM 仍应是第一道健康检查：若 assignment log、exposure log 与最终 analysis cohort 不一致，后续 uplift 解释将显著失真。
+## 4. Balance check
+渠道、设备、来源意图与年龄段分布未见显著失衡：
+- channel p = 0.205
+- device p = 0.286
+- intent p = 0.421
+- age p = 0.936
 
-### 6.2 污染 / Interference
-如果用户重复进入链路、跨渠道回流、被客服人工补救、或实验期叠加其他运营触达，control 与 treatment 的暴露边界可能被稀释。  
-正式落地时需要锁定首曝分组、对 user_id 去重，并尽量剔除人工介入造成的二次影响。
+这意味着实验组与对照组的可比性较好，实验结果更有可能来自流程改动本身，而非样本结构偏差。
 
-### 6.3 跨设备 / Identity stitching
-同一用户若在 mobile / web 或不同设备之间切换，而标识未正确合并，可能出现跨组暴露或步骤漏记。  
-这类问题普通 balance check 抓不出来，因此正式分析应依赖稳定 account key 或 device graph 完成 join。
+---
 
-### 6.4 观察窗截断 / Mature-window censoring
-实验截止到 2026-03-16，而 7 日留存、7 日首充要求完整成熟窗。  
-尾部用户若未走满 7 天，会系统性低估 post metrics，因此正式结果应只保留 mature cohort，或明确 cohort 截尾规则。
+## 5. Overall results
+| 指标 | 对照组 | 实验组 | 绝对变化 | 95% 置信区间 | 业务判断 |
+|---|---:|---:|---:|---|---|
+| 开户完成率 | 16.82% | 21.55% | **+4.74 ppt** | [4.02, 5.45] | 主指标显著提升 |
+| 7 日留存率 | 35.23% | 37.09% | **+1.86 ppt** | [0.98, 2.73] | 留存同步改善 |
+| 7 日投诉率 | 1.277% | 1.280% | +0.00 ppt | [-0.20, 0.21] | 未见显著恶化 |
+| 7 日首充率 | 34.18% | 36.12% | **+1.94 ppt** | [1.07, 2.81] | 商业结果方向一致 |
 
-### 6.5 Novelty effect
-进度条与 FAQ 解释类改动，早期可能因为“新鲜感”而短暂抬升启动率与风险问答完成率。  
-如果 uplift 在灰度放量后快速回落，那么短期实验结果会高于长期稳定效果，因此需要按周跟踪 effect drift。
+### Interpretation
+这个结果组合比单纯“主指标显著提升”更有业务价值：
+- 主指标变好；
+- 护栏没有明显受损；
+- 留存与首充方向一致。
 
-### 6.6 为什么要显性写出这些风险
-更成熟的实验复盘，不只是证明“有显著 uplift”，还要说明“结果为什么值得信、为什么当前只建议灰度而非直接全量”。
+因此，这轮实验更像是**降低摩擦**，而不是通过误导、催促或压缩信息质量来获取短期转化。
 
-## 7. 总体效果
+---
 
-| Metric | Control | Treatment | Uplift | 95% CI | p-value |
-|---|---:|---:|---:|---|---:|
-| Account-open completion rate | 16.82% | 21.55% | +4.74 ppt | [4.02, 5.45] | < 0.001 |
-| 7-day retention rate | 35.23% | 37.09% | +1.86 ppt | [0.98, 2.73] | < 0.001 |
-| 7-day complaint rate | 1.28% | 1.28% | +0.00 ppt | [-0.20, 0.21] | 0.975 |
-| 7-day first-deposit rate | 34.18% | 36.12% | +1.94 ppt | [1.07, 2.81] | < 0.001 |
+## 6. Funnel diagnosis
+### 6.1 累计阶段到达率
+实验组在多个阶段的累计到达率均高于对照组，说明整体链路推进更顺畅。
 
-## 8. 漏斗诊断
+### 6.2 相邻步骤转化率
+| 相邻步骤 | 对照组 | 实验组 | 绝对变化 |
+|---|---:|---:|---:|
+| Landing → Start onboarding | 80.50% | 80.79% | +0.29 ppt |
+| Start → Submit basic info | 69.90% | 77.04% | **+7.14 ppt** |
+| Submit basic info → ID pass | 81.60% | 83.73% | +2.13 ppt |
+| ID pass → Risk assessment start | 74.41% | 78.81% | **+4.40 ppt** |
+| Risk start → Risk complete | 72.90% | 78.01% | **+5.11 ppt** |
+| Risk complete → Bind bank card | 81.72% | 82.35% | +0.64 ppt |
+| Bind bank card → Complete | 82.63% | 81.69% | **-0.94 ppt** |
 
-### 8.1 关键 uplift 来源
-- Submit Basic Info：+7.14 ppt  
-- Risk Assessment Start：+4.40 ppt  
-- Risk Assessment Complete：+5.11 ppt  
+### 6.3 Diagnosis
+这组结果说明：
+1. **基础信息填写**是最明显的改善点，表单精简直接降低了放弃率；
+2. **风险测评进入与完成**也明显提升，说明进度条提示与关键疑问解释有效减少了理解成本；
+3. **最后一步并不是核心贡献来源**，甚至略有下降，说明整体提升主要来自前中段流程推进，而非最后一步优化。
 
-这说明 treatment 主要降低了填写阻力与风险问答阻力，而不是单纯优化最后确认页。
+---
 
-### 8.2 反常结果解释：为什么最后一步略降，整体结论仍然成立
-最后一步 `Bind bank card → Complete` 的 step conversion 为 **-0.94 ppt**，但这并不与整体 uplift 冲突，原因主要有三层：
+## 7. Channel heterogeneity
+| 渠道 | 对照组 | 实验组 | 提升幅度 | 建议动作 |
+|---|---:|---:|---:|---|
+| 推荐渠道 | 19.95% | 25.60% | **+5.65 ppt** | 第一优先级灰度 |
+| 付费投放 | 12.05% | 17.64% | **+5.59 ppt** | 第一优先级灰度 |
+| 线下客户经理 | 21.79% | 26.77% | +4.98 ppt | 第二优先级 |
+| 内容 / 搜索 | 17.48% | 21.90% | +4.41 ppt | 第二优先级 |
+| 应用商店 | 15.73% | 19.16% | +3.43 ppt | 保守推进 |
 
-1. **分母构成变化**：treatment 把更多中等意向用户推进到了更后面阶段，末端分母扩大后，最后一步的平均收口率可能被轻微摊薄。  
-2. **末端摩擦未被直接触及**：当前改动主要作用于前中段认知负担；而末端开户完成更受 OTP、银行卡验证、KYC 复核、外部跳转等待等因素影响。  
-3. **幅度大小不对称**：末端的 -0.94 ppt 明显小于前中段 +7.14 / +4.40 / +5.11 ppt 的提升，因此 end-to-end completion 仍然显著抬升。  
+### Interpretation
+各渠道提升均为正，且在校正后仍显著。推荐渠道与付费投放的提升最高，说明当前这组改动对高摩擦来源更有效，适合作为优先灰度渠道。
 
-更成熟的解释不是“最后一步也优化了”，而是：当前 treatment 主要完成了“把用户更高比例地送到末端”，但末端收口摩擦本身仍然存在。
+---
 
-## 9. 渠道异质性
+## 8. Rollout recommendation
+### Phase 1
+优先在 **推荐渠道 + 付费投放** 渠道灰度上线。
 
-| Channel | Control / Treatment n | Uplift | 95% CI | Holm-adjusted p | Priority proxy |
-|---|---:|---:|---|---:|---:|
-| Referral | 4,156 / 4,070 | +5.65 ppt | [3.85, 7.46] | < 0.001 | 465 |
-| Paid social | 5,991 / 6,026 | +5.59 ppt | [4.32, 6.86] | < 0.001 | 672 |
-| Offline broker | 3,813 / 3,664 | +4.98 ppt | [3.04, 6.92] | < 0.001 | 372 |
-| Content / SEO | 3,809 / 3,649 | +4.41 ppt | [2.61, 6.22] | < 0.001 | 329 |
-| App store | 5,487 / 5,553 | +3.43 ppt | [2.02, 4.85] | < 0.001 | 379 |
+### Phase 2
+若护栏稳定，再扩展到线下客户经理与内容 / 搜索。
 
-## 10. 局限性
+### 灰度期间继续监控
+灰度期间应继续监控：
+- 7 日投诉率
+- 身份验证失败率
+- 客服咨询量
+- 首充率
+- 高价值用户激活质量
 
-1. 这是 synthetic-data 作品集案例，不应把数值本身当作真实券商经营结论。  
-2. 当前 treatment 是组合式改动，只能识别组合效果，不能识别单个设计元素的独立贡献。  
-3. 7-day retention 与 first-deposit 只代表短期质量，不替代长期交易活跃、LTV 或合规风险结果。  
-4. Detectability 展示的是已实现样本规模下的近似 MDE，不等同于正式项目中的事前 power plan。  
-5. 本报告新增了 SRM、污染、跨设备、成熟窗截断与 novelty effect 讨论，目的是补足“结果可信度”层面的分析，而不是宣称这些威胁已由现有 synthetic data 完全排除。  
+### 为什么不直接全量
+因为当前这组改动由多项改动打包构成，且开户注册链路属于受合规与服务资源约束较强的流程，直接全量上线会降低归因清晰度，也会扩大潜在风险暴露。
 
-## 11. 下一步建议
+---
 
-- 拆解单因素测试：表单精简 / 进度条 / FAQ 解释。  
-- 新增护栏：身份验证失败率、客服咨询量、风险问答中断率。  
-- 新增日志：assignment log、exposure log、客服人工介入标签、cross-device stitching 质量标记。  
-- 新增分层：新老客、设备类型、来源意图、是否高价值潜客。  
-- 补长期指标：首月入金、首月交易活跃、30 日留存，并按周跟踪 novelty effect 的 effect drift。  
+## 9. Validity threats
+- SRM（样本比例失衡）
+- 污染 / Interference
+- 跨设备识别
+- 观察窗截断 / Mature-window censoring
+- 新鲜感效应
 
-## 12. 复现方式
+这些风险不会自动推翻当前结果，但会影响“是否适合直接全量”的决策。
 
-```bash
-pip install -r requirements.txt
-python analysis.py
-```
+---
+
+## 10. Data and reproducibility notes
+- 数据为模拟生成，仅用于复现实验评估框架；
+- 相关结论用于展示分析方法、复盘结构与决策过程；
+- 不对应任何真实券商用户、渠道或业务结果。
