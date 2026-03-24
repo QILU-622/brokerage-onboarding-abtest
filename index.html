@@ -1,169 +1,342 @@
-<!doctype html>
+<!DOCTYPE html>
 <html lang="zh-CN">
 <head>
-  <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>券商 App 新客开户实验复盘</title>
-  <meta name="description" content="券商 App 新客开户链路的效果评估、机制拆解与分渠道放量顺序。">
-  <style>:root{
-  --bg:#0b1020;
-  --panel:#111831;
-  --panel-2:#151f3d;
-  --line:rgba(255,255,255,.08);
-  --text:#eef3ff;
-  --muted:#a8b4d3;
-  --accent:#7aa2ff;
-  --accent-2:#85e0c0;
-  --warm:#f6c177;
-  --danger:#f28b82;
-  --shadow:0 18px 40px rgba(0,0,0,.28);
-}
-*{box-sizing:border-box}
-html{scroll-behavior:smooth}
-body{margin:0;font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,"PingFang SC","Noto Sans SC","Hiragino Sans GB","Microsoft YaHei",sans-serif;background:linear-gradient(180deg,#0b1020 0%,#0d1327 100%);color:var(--text);line-height:1.7}
-a{color:inherit;text-decoration:none}
-.container{width:min(1120px,calc(100vw - 32px));margin:0 auto}
-header.hero{padding:44px 0 20px;border-bottom:1px solid var(--line);background:radial-gradient(circle at top right, rgba(122,162,255,.18), transparent 30%),radial-gradient(circle at top left, rgba(133,224,192,.10), transparent 26%)}
-.badge{display:inline-flex;align-items:center;gap:10px;padding:8px 14px;border:1px solid rgba(255,255,255,.12);border-radius:999px;background:rgba(255,255,255,.04);font-size:12px;letter-spacing:.08em;text-transform:uppercase;color:var(--muted)}
-h1{font-size:clamp(34px,5vw,56px);line-height:1.08;margin:18px 0 14px;letter-spacing:-.03em}
-.subtitle{max-width:820px;font-size:18px;color:#d5def6;margin:0 0 28px}
-.toplinks{display:flex;flex-wrap:wrap;gap:12px;margin:18px 0 10px}
-.btn{display:inline-flex;align-items:center;gap:10px;padding:12px 16px;border-radius:14px;background:var(--panel);border:1px solid var(--line);box-shadow:var(--shadow);font-weight:600}
-.btn.secondary{background:transparent;box-shadow:none}
-.quicknav{display:flex;flex-wrap:wrap;gap:10px;padding:18px 0 0}
-.quicknav a{padding:8px 12px;border-radius:999px;background:rgba(255,255,255,.05);border:1px solid var(--line);font-size:14px;color:var(--muted)}
-section{padding:34px 0}
-.section-head{display:flex;justify-content:space-between;align-items:end;gap:18px;margin-bottom:18px}
-.section-head h2{margin:0;font-size:28px;letter-spacing:-.02em}
-.section-head p{margin:0;color:var(--muted);max-width:720px}
-.grid{display:grid;gap:16px}
-.metrics{grid-template-columns:repeat(4,minmax(0,1fr))}
-.card{background:linear-gradient(180deg,rgba(255,255,255,.04),rgba(255,255,255,.02));border:1px solid var(--line);border-radius:22px;padding:20px;box-shadow:var(--shadow)}
-.metric-label{color:var(--muted);font-size:14px;margin-bottom:10px}
-.metric-value{font-size:34px;font-weight:750;letter-spacing:-.03em;line-height:1.05}
-.metric-sub{margin-top:8px;color:#d5def6;font-size:14px}
-.two-col{grid-template-columns:1.08fr .92fr}
-.callout{padding:24px;border-radius:24px;background:linear-gradient(180deg,rgba(122,162,255,.18),rgba(122,162,255,.07));border:1px solid rgba(122,162,255,.25)}
-.callout h3{margin:0 0 12px;font-size:22px}
-.callout p{margin:0;color:#e7eeff}
-.note{color:var(--muted);font-size:14px}
-.list{margin:12px 0 0;padding-left:18px}
-.list li{margin:8px 0}
-.table-wrap{overflow:auto;border:1px solid var(--line);border-radius:18px;background:rgba(255,255,255,.03)}
-table{width:100%;border-collapse:collapse;min-width:720px}
-th,td{padding:14px 16px;border-bottom:1px solid var(--line);text-align:left;font-size:14px}
-th{font-size:13px;color:var(--muted);font-weight:700;background:rgba(255,255,255,.03)}
-tr:last-child td{border-bottom:none}
-.em{font-weight:700}
-.good{color:var(--accent-2);font-weight:700}
-.warn{color:var(--warm);font-weight:700}
-.bad{color:var(--danger);font-weight:700}
-.kv{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:14px}
-.kv .card h3{margin:0 0 10px;font-size:18px}
-.kv .card p{margin:0;color:#dbe4fb}
-.bars{display:grid;gap:14px}
-.bar{display:grid;grid-template-columns:280px 1fr 92px;gap:14px;align-items:center}
-.bar .label{font-size:14px;color:#dbe4fb}
-.track{height:12px;border-radius:999px;background:rgba(255,255,255,.08);overflow:hidden;position:relative}
-.fill{height:100%;border-radius:999px;background:linear-gradient(90deg,var(--accent),#97b6ff)}
-.fill.green{background:linear-gradient(90deg,var(--accent-2),#b1f0d9)}
-.fill.orange{background:linear-gradient(90deg,var(--warm),#ffd59a)}
-.fill.red{background:linear-gradient(90deg,var(--danger),#ffc1bb)}
-.delta{font-weight:750;text-align:right}
-.priority{display:inline-flex;align-items:center;padding:4px 10px;border-radius:999px;font-size:12px;font-weight:700}
-.p1{background:rgba(133,224,192,.12);color:var(--accent-2);border:1px solid rgba(133,224,192,.24)}
-.p2{background:rgba(246,193,119,.12);color:var(--warm);border:1px solid rgba(246,193,119,.24)}
-.p3{background:rgba(255,255,255,.05);color:#d6def6;border:1px solid var(--line)}
-.smallgrid{grid-template-columns:repeat(3,minmax(0,1fr))}
-.footer{padding:28px 0 46px;color:var(--muted);font-size:13px;border-top:1px solid var(--line)}
-.divider{height:1px;background:var(--line);margin:8px 0 0}
-.muted-card{background:rgba(255,255,255,.03)}
-@media (max-width: 980px){
-  .metrics,.two-col,.smallgrid,.kv{grid-template-columns:1fr 1fr}
-  .bar{grid-template-columns:1fr;gap:8px}
-}
-@media (max-width: 640px){
-  .metrics,.two-col,.smallgrid,.kv{grid-template-columns:1fr}
-  header.hero{padding-top:28px}
-  .btn{width:100%;justify-content:center}
-}</style>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>券商 App 新客开户实验复盘｜灰度上线决策</title>
+  <meta name="description" content="券商 App 新客开户实验复盘，围绕放量决策、漏斗诊断、渠道异质性与灰度上线规则展开。" />
+  <style>
+    :root{
+      --bg:#0b1020;
+      --panel:#121a31;
+      --panel-2:#182340;
+      --line:#273556;
+      --text:#eef3ff;
+      --muted:#b2bdd8;
+      --accent:#7cc4ff;
+      --accent-2:#9ff3cf;
+      --warn:#ffd58a;
+      --danger:#ffb5b5;
+      --shadow:0 20px 50px rgba(0,0,0,.24);
+      --radius:20px;
+      --radius-sm:14px;
+      --max:1160px;
+    }
+    *{box-sizing:border-box}
+    html{scroll-behavior:smooth}
+    body{
+      margin:0;
+      font-family:-apple-system,BlinkMacSystemFont,"Segoe UI","PingFang SC","Hiragino Sans GB","Microsoft YaHei",sans-serif;
+      color:var(--text);
+      background:
+        radial-gradient(circle at top left, rgba(124,196,255,.22), transparent 28%),
+        radial-gradient(circle at top right, rgba(159,243,207,.12), transparent 22%),
+        linear-gradient(180deg,#08101f 0%, #0b1020 42%, #0c1122 100%);
+      line-height:1.7;
+    }
+    a{color:inherit;text-decoration:none}
+    .wrap{max-width:var(--max);margin:0 auto;padding:0 24px}
+    .topbar{
+      position:sticky;top:0;z-index:20;
+      backdrop-filter:blur(14px);
+      background:rgba(8,16,31,.72);
+      border-bottom:1px solid rgba(255,255,255,.06);
+    }
+    .topbar-inner{
+      display:flex;align-items:center;justify-content:space-between;gap:16px;
+      min-height:72px;
+    }
+    .brand{font-size:14px;color:var(--muted);letter-spacing:.06em}
+    .nav{display:flex;gap:12px;flex-wrap:wrap}
+    .nav a{
+      padding:10px 14px;border:1px solid rgba(255,255,255,.08);
+      border-radius:999px;color:var(--muted);font-size:14px;
+      transition:.2s ease;
+    }
+    .nav a:hover{color:var(--text);border-color:rgba(124,196,255,.45);transform:translateY(-1px)}
+    .hero{padding:56px 0 26px}
+    .hero-grid{
+      display:grid;grid-template-columns:1.25fr .95fr;gap:24px;
+      align-items:stretch;
+    }
+    .panel{
+      background:linear-gradient(180deg, rgba(18,26,49,.96), rgba(14,21,40,.96));
+      border:1px solid rgba(255,255,255,.06);
+      border-radius:var(--radius);
+      box-shadow:var(--shadow);
+    }
+    .hero-main{padding:34px}
+    .eyebrow{
+      display:inline-flex;align-items:center;gap:8px;
+      font-size:13px;color:var(--accent);letter-spacing:.06em;text-transform:uppercase;
+      margin-bottom:14px;
+    }
+    .eyebrow::before{
+      content:"";width:8px;height:8px;border-radius:50%;background:var(--accent);
+      box-shadow:0 0 0 6px rgba(124,196,255,.12);
+    }
+    h1{
+      margin:0 0 16px;
+      font-size:clamp(34px,4vw,52px);
+      line-height:1.15;
+      letter-spacing:-.03em;
+    }
+    .lead{
+      margin:0 0 22px;color:#d9e5ff;font-size:17px;
+      max-width:760px;
+    }
+    .hero-actions{display:flex;gap:12px;flex-wrap:wrap;margin-bottom:24px}
+    .btn{
+      display:inline-flex;align-items:center;justify-content:center;gap:8px;
+      padding:12px 18px;border-radius:999px;font-weight:600;font-size:14px;
+      border:1px solid rgba(255,255,255,.08);transition:.2s ease;
+    }
+    .btn-primary{
+      background:linear-gradient(135deg, rgba(124,196,255,.22), rgba(159,243,207,.14));
+      border-color:rgba(124,196,255,.38);
+    }
+    .btn-secondary{color:var(--muted)}
+    .btn:hover{transform:translateY(-1px)}
+    .key-points{
+      display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:14px;
+      margin-top:14px;
+    }
+    .point{
+      padding:16px;border-radius:16px;background:rgba(255,255,255,.03);
+      border:1px solid rgba(255,255,255,.06);
+    }
+    .point .k{font-size:12px;color:var(--muted);margin-bottom:6px}
+    .point .v{font-size:20px;font-weight:700}
+    .hero-side{
+      padding:24px;display:grid;gap:16px;align-content:start;
+    }
+    .decision-card{
+      padding:22px;border-radius:18px;
+      background:linear-gradient(180deg, rgba(124,196,255,.12), rgba(124,196,255,.05));
+      border:1px solid rgba(124,196,255,.24);
+    }
+    .decision-label{font-size:12px;color:var(--accent);letter-spacing:.08em;text-transform:uppercase}
+    .decision-title{margin:10px 0 12px;font-size:24px;line-height:1.28}
+    .decision-copy{margin:0;color:#d9e5ff;font-size:15px}
+    .list-card{
+      padding:20px;border-radius:18px;background:rgba(255,255,255,.03);
+      border:1px solid rgba(255,255,255,.06);
+    }
+    .list-card h3{margin:0 0 12px;font-size:16px}
+    .list-card ul{margin:0;padding-left:18px;color:var(--muted)}
+    .list-card li+li{margin-top:8px}
+    .stat-grid{
+      display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:16px;
+      margin:18px 0 14px;
+    }
+    .stat{
+      padding:20px;border-radius:18px;background:rgba(255,255,255,.03);
+      border:1px solid rgba(255,255,255,.06);
+    }
+    .stat .label{font-size:13px;color:var(--muted);margin-bottom:10px}
+    .stat .value{font-size:30px;font-weight:800;line-height:1.15}
+    .stat .sub{margin-top:8px;color:#dce7ff;font-size:14px}
+    section{padding:12px 0}
+    .section-title{
+      margin:34px 0 16px;
+      font-size:28px;line-height:1.2;letter-spacing:-.02em;
+    }
+    .section-kicker{
+      color:var(--muted);margin:0 0 16px;font-size:15px;
+    }
+    .grid-2{display:grid;grid-template-columns:1fr 1fr;gap:20px}
+    .grid-3{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:16px}
+    .card{
+      padding:24px;border-radius:var(--radius);background:rgba(255,255,255,.03);
+      border:1px solid rgba(255,255,255,.06);box-shadow:var(--shadow);
+    }
+    .card h3{margin:0 0 10px;font-size:18px}
+    .card p{margin:0;color:#dfe8ff}
+    .metric-table,.funnel-table,.channel-table,.rule-table{
+      width:100%;border-collapse:collapse;border-spacing:0;
+      overflow:hidden;border-radius:18px;
+    }
+    .table-wrap{
+      overflow:auto;border:1px solid rgba(255,255,255,.07);border-radius:18px;
+      background:rgba(255,255,255,.03);box-shadow:var(--shadow);
+    }
+    table thead th{
+      text-align:left;padding:15px 16px;font-size:13px;font-weight:700;color:#eaf1ff;
+      background:rgba(124,196,255,.10);border-bottom:1px solid rgba(255,255,255,.06);
+      white-space:nowrap;
+    }
+    table tbody td{
+      padding:15px 16px;border-bottom:1px solid rgba(255,255,255,.06);vertical-align:top;
+      color:#e4edff;font-size:14px;
+    }
+    table tbody tr:last-child td{border-bottom:none}
+    table tbody tr:hover td{background:rgba(255,255,255,.02)}
+    .num{white-space:nowrap;font-variant-numeric:tabular-nums}
+    .muted{color:var(--muted)}
+    .pill{
+      display:inline-block;padding:5px 10px;border-radius:999px;
+      font-size:12px;font-weight:700;letter-spacing:.02em;
+      background:rgba(159,243,207,.12);border:1px solid rgba(159,243,207,.26);color:var(--accent-2);
+    }
+    .pill.warn{background:rgba(255,213,138,.12);border-color:rgba(255,213,138,.24);color:var(--warn)}
+    .pill.neutral{background:rgba(255,255,255,.06);border-color:rgba(255,255,255,.10);color:#e4edff}
+    .bar-list{display:grid;gap:14px}
+    .bar-row{
+      padding:16px;border-radius:16px;background:rgba(255,255,255,.03);
+      border:1px solid rgba(255,255,255,.06);
+    }
+    .bar-head{
+      display:flex;justify-content:space-between;gap:16px;align-items:center;margin-bottom:10px;
+      font-size:14px;font-weight:600;
+    }
+    .track{
+      height:12px;border-radius:999px;background:rgba(255,255,255,.06);overflow:hidden;
+      box-shadow:inset 0 0 0 1px rgba(255,255,255,.04);
+    }
+    .fill{
+      height:100%;border-radius:999px;background:linear-gradient(90deg, rgba(124,196,255,.95), rgba(159,243,207,.95));
+    }
+    .note{
+      margin-top:10px;font-size:13px;color:var(--muted);
+    }
+    .rule-table td:first-child,.rule-table th:first-child{min-width:170px}
+    .footer{
+      padding:28px 0 56px;color:var(--muted);font-size:13px;
+    }
+    .footer .panel{padding:18px 22px}
+    .small{font-size:13px;color:var(--muted)}
+    .spacer{height:8px}
+    @media (max-width: 1024px){
+      .hero-grid,.grid-2{grid-template-columns:1fr}
+      .stat-grid{grid-template-columns:repeat(2,minmax(0,1fr))}
+      .grid-3{grid-template-columns:1fr}
+    }
+    @media (max-width: 640px){
+      .wrap{padding:0 16px}
+      .hero-main,.hero-side,.card{padding:20px}
+      .stat-grid,.key-points{grid-template-columns:1fr}
+      .topbar-inner{align-items:flex-start;padding:12px 0}
+      .nav{justify-content:flex-start}
+      table thead th, table tbody td{padding:13px 12px}
+    }
+  </style>
 </head>
 <body>
-  <header class="hero">
-    <div class="container">
-      <span class="badge">Experiment Review · Rollout Decision</span>
-      <h1>券商 App 新客开户实验复盘</h1>
-      <p class="subtitle">围绕新客开户链路的放量判断、机制识别与渠道优先级排序，结论以主指标、护栏指标、分步漏斗与分渠道结果为依据。</p>
-      
-<div class="toplinks">
-  <a class="btn" href="https://github.com/QILU-622/brokerage-onboarding-abtest" target="_blank" rel="noopener">GitHub 仓库</a>
-  <a class="btn" href="./reports/brokerage_abtest_report.html">分析报告</a>
-  <a class="btn secondary" href="https://github.com/QILU-622/brokerage-onboarding-abtest/blob/main/notebooks/brokerage_abtest_analysis.ipynb" target="_blank" rel="noopener">Notebook</a>
-  <a class="btn secondary" href="https://github.com/QILU-622/brokerage-onboarding-abtest/tree/main/sql" target="_blank" rel="noopener">SQL 查询</a>
-</div>
-<div class="quicknav">
-  <a href="#summary">结论</a>
-  <a href="#results">结果</a>
-  <a href="#mechanism">机制</a>
-  <a href="#channels">渠道</a>
-  <a href="#value">业务价值</a>
-  <a href="#boundary">解释边界</a>
-</div>
-
+  <header class="topbar">
+    <div class="wrap topbar-inner">
+      <div class="brand">实验复盘 · 放量决策</div>
+      <nav class="nav">
+        <a href="#decision">结论</a>
+        <a href="#results">结果</a>
+        <a href="#funnel">漏斗诊断</a>
+        <a href="#rollout">灰度规则</a>
+        <a href="#risks">风险</a>
+      </nav>
     </div>
   </header>
 
-  <main class="container">
-    <section id="summary">
-      <div class="grid metrics">
-        <div class="card">
-          <div class="metric-label">实验样本</div>
-          <div class="metric-value">46,218</div>
-          <div class="metric-sub">对照组 23,256 · 实验组 22,962</div>
+  <main class="wrap">
+    <section class="hero">
+      <div class="hero-grid">
+        <article class="panel hero-main">
+          <div class="eyebrow">Brokerage onboarding experiment</div>
+          <h1>券商 App 新客开户实验复盘</h1>
+          <p class="lead">
+            本次复盘围绕三个业务问题展开：这组流程优化是否值得继续放量；效果主要发生在链路的哪个环节；当前阶段应直接全量，还是先按渠道灰度推进。
+          </p>
+
+          <div class="hero-actions">
+            <a class="btn btn-primary" href="reports/brokerage_abtest_report.html">查看分析报告</a>
+            <a class="btn btn-secondary" href="https://github.com/QILU-622/brokerage-onboarding-abtest" target="_blank" rel="noopener">GitHub 仓库</a>
+            <a class="btn btn-secondary" href="https://github.com/QILU-622/brokerage-onboarding-abtest/blob/main/notebooks/brokerage_abtest_analysis.ipynb" target="_blank" rel="noopener">Notebook</a>
+            <a class="btn btn-secondary" href="https://github.com/QILU-622/brokerage-onboarding-abtest/tree/main/sql" target="_blank" rel="noopener">SQL 查询</a>
+          </div>
+
+          <div class="key-points">
+            <div class="point">
+              <div class="k">业务问题 01</div>
+              <div class="v">是否继续放量</div>
+            </div>
+            <div class="point">
+              <div class="k">业务问题 02</div>
+              <div class="v">增益来自哪一段</div>
+            </div>
+            <div class="point">
+              <div class="k">业务问题 03</div>
+              <div class="v">如何安全推进上线</div>
+            </div>
+          </div>
+        </article>
+
+        <aside class="panel hero-side" id="decision">
+          <div class="decision-card">
+            <div class="decision-label">当前建议</div>
+            <div class="decision-title">进入分渠道灰度，暂不建议直接全量</div>
+            <p class="decision-copy">
+              主指标显著改善，短期质量信号方向一致，投诉率未见恶化；但当前仍只能确认组合效果，不能把 uplift 直接归因到单一设计元素，且 SRM、污染、跨设备识别与成熟窗问题仍需在灰度阶段继续验证。
+            </p>
+          </div>
+
+          <div class="list-card">
+            <h3>当前证据支持继续推进</h3>
+            <ul>
+              <li>开户完成率由 <strong>16.82%</strong> 提升至 <strong>21.55%</strong>，绝对提升 <strong>+4.74 ppt</strong>。</li>
+              <li>7 日留存率同步提升 <strong>+1.86 ppt</strong>，说明短期质量未被牺牲。</li>
+              <li>7 日投诉率变化接近于零，未看到显著恶化信号。</li>
+            </ul>
+          </div>
+        </aside>
+      </div>
+
+      <div class="stat-grid">
+        <div class="stat panel">
+          <div class="label">实验样本</div>
+          <div class="value">46,218</div>
+          <div class="sub">对照组 23,256 · 实验组 22,962</div>
         </div>
-        <div class="card">
-          <div class="metric-label">事件日志</div>
-          <div class="metric-value">221,046</div>
-          <div class="metric-sub">覆盖完整开户链路与后验指标</div>
+        <div class="stat panel">
+          <div class="label">事件日志</div>
+          <div class="value">221,046</div>
+          <div class="sub">观察窗口 2026-01-01 至 2026-03-16</div>
         </div>
-        <div class="card">
-          <div class="metric-label">观察窗口</div>
-          <div class="metric-value">75 天</div>
-          <div class="metric-sub">2026-01-01 至 2026-03-16</div>
+        <div class="stat panel">
+          <div class="label">主指标 uplift</div>
+          <div class="value">+4.74 ppt</div>
+          <div class="sub">开户完成率 16.82% → 21.55%</div>
         </div>
-        <div class="card">
-          <div class="metric-label">主指标变化</div>
-          <div class="metric-value">+4.74 ppt</div>
-          <div class="metric-sub">开户完成率 16.82% → 21.55%</div>
+        <div class="stat panel">
+          <div class="label">短期质量信号</div>
+          <div class="value">+1.86 / +1.94</div>
+          <div class="sub">7 日留存 +1.86 ppt；7 日首充 +1.94 ppt</div>
         </div>
       </div>
     </section>
 
     <section>
-      <div class="grid two-col">
-        <div class="callout card">
-          <h3>结论</h3>
-          <p>建议按渠道推进灰度，不直接全量。主指标显著改善，7 日留存同步抬升，投诉率未见恶化；放量顺序优先推荐渠道与付费投放，其次线下客户经理与内容/搜索，应用商店保守推进。</p>
+      <h2 class="section-title">实验框架</h2>
+      <p class="section-kicker">本轮评估关注 end-to-end completion、短期质量约束以及渠道异质性，而不是只看单个页面的局部点击率。</p>
+      <div class="grid-3">
+        <div class="card">
+          <h3>随机分流</h3>
+          <p>用户层级 50/50 分流。当前样本结构在渠道、设备、来源意图和年龄段上未见显著失衡。</p>
+          <div class="note">channel p=0.205 · device p=0.286 · intent p=0.421 · age p=0.936</div>
         </div>
-        <div class="card muted-card">
-          <div class="metric-label">判断依据</div>
-          <ul class="list">
-            <li>开户完成率提升 <span class="good">+4.74 ppt</span>，95% 置信区间 <span class="em">[4.02, 5.45]</span></li>
-            <li>7 日留存率提升 <span class="good">+1.86 ppt</span></li>
-            <li>7 日投诉率变化 <span class="warn">+0.00 ppt</span>，区间跨零</li>
-            <li>前中段转化提升明显强于末端收口回落</li>
-          </ul>
+        <div class="card">
+          <h3>指标体系</h3>
+          <p>主指标为开户完成率；护栏指标为 7 日留存率与 7 日投诉率；7 日首充率用于补充商业结果方向。</p>
+        </div>
+        <div class="card">
+          <h3>统计口径</h3>
+          <p>采用双样本比例检验与非合并 95% 置信区间；分渠道 uplift 额外进行 Holm 多重比较校正。</p>
         </div>
       </div>
     </section>
 
     <section id="results">
-      <div class="section-head">
-        <h2>实验结果</h2>
-        <p>主指标、护栏指标与下游结果共同用于判断是否继续放量；显著性、变化方向与业务含义需要同时看。</p>
-      </div>
-      <div class="table-wrap card">
-        <table>
+      <h2 class="section-title">结果总览</h2>
+      <p class="section-kicker">主指标显著改善，短期质量指标方向一致，投诉率未见恶化。现有证据足以支持继续灰度，但还不足以直接外推到长期收入或生命周期价值。</p>
+      <div class="table-wrap">
+        <table class="metric-table">
           <thead>
             <tr>
               <th>指标</th>
@@ -171,191 +344,320 @@ tr:last-child td{border-bottom:none}
               <th>实验组</th>
               <th>绝对变化</th>
               <th>95% 置信区间</th>
-              <th>判断</th>
+              <th>业务判断</th>
             </tr>
           </thead>
           <tbody>
             <tr>
               <td>开户完成率</td>
-              <td>16.82%</td>
-              <td>21.55%</td>
-              <td class="good">+4.74 ppt</td>
-              <td>[4.02, 5.45]</td>
-              <td>支持继续放量</td>
+              <td class="num">16.82%</td>
+              <td class="num">21.55%</td>
+              <td class="num">+4.74 ppt</td>
+              <td class="num">[4.02, 5.45]</td>
+              <td><span class="pill">支持继续灰度</span></td>
             </tr>
             <tr>
               <td>7 日留存率</td>
-              <td>35.23%</td>
-              <td>37.09%</td>
-              <td class="good">+1.86 ppt</td>
-              <td>[0.98, 2.73]</td>
-              <td>短期质量同步改善</td>
+              <td class="num">35.23%</td>
+              <td class="num">37.09%</td>
+              <td class="num">+1.86 ppt</td>
+              <td class="num">[0.98, 2.73]</td>
+              <td><span class="pill">质量同步改善</span></td>
             </tr>
             <tr>
               <td>7 日投诉率</td>
-              <td>1.277%</td>
-              <td>1.280%</td>
-              <td class="warn">+0.00 ppt</td>
-              <td>[-0.20, 0.21]</td>
-              <td>未见显著恶化</td>
+              <td class="num">1.277%</td>
+              <td class="num">1.280%</td>
+              <td class="num">+0.00 ppt</td>
+              <td class="num">[-0.20, 0.21]</td>
+              <td><span class="pill neutral">未见显著恶化</span></td>
             </tr>
             <tr>
-              <td>7 日首充率</td>
-              <td>34.18%</td>
-              <td>36.12%</td>
-              <td class="good">+1.94 ppt</td>
-              <td>[1.07, 2.81]</td>
-              <td>与主指标方向一致</td>
+              <td>7 日首充率（探索性）</td>
+              <td class="num">34.18%</td>
+              <td class="num">36.12%</td>
+              <td class="num">+1.94 ppt</td>
+              <td class="num">[1.07, 2.81]</td>
+              <td><span class="pill">商业方向一致</span></td>
             </tr>
           </tbody>
         </table>
       </div>
     </section>
 
-    <section id="mechanism">
-      <div class="section-head">
-        <h2>机制拆解</h2>
-        <p>整体提升主要来自前中段转化改善，而不是末端收口改善。相邻步骤转化率的变化比累计结果更能说明问题发生在哪里。</p>
-      </div>
-      <div class="grid two-col">
+    <section id="funnel">
+      <h2 class="section-title">关键漏斗诊断</h2>
+      <p class="section-kicker">整体 uplift 不是来自最后一步的单点收口，而是来自前中段摩擦下降后，更多用户被推进到链路末端。</p>
+
+      <div class="grid-2">
         <div class="card">
-          <div class="bars">
-            <div class="bar"><div class="label">Landing → Start onboarding</div><div class="track"><div class="fill" style="width:4.1%"></div></div><div class="delta good">+0.29</div></div>
-            <div class="bar"><div class="label">Start → Submit basic info</div><div class="track"><div class="fill green" style="width:100%"></div></div><div class="delta good">+7.14</div></div>
-            <div class="bar"><div class="label">Submit basic info → ID pass</div><div class="track"><div class="fill" style="width:29.8%"></div></div><div class="delta good">+2.13</div></div>
-            <div class="bar"><div class="label">ID pass → Risk assessment start</div><div class="track"><div class="fill green" style="width:61.6%"></div></div><div class="delta good">+4.40</div></div>
-            <div class="bar"><div class="label">Risk start → Risk complete</div><div class="track"><div class="fill green" style="width:71.6%"></div></div><div class="delta good">+5.11</div></div>
-            <div class="bar"><div class="label">Risk complete → Bind bank card</div><div class="track"><div class="fill orange" style="width:9.0%"></div></div><div class="delta good">+0.64</div></div>
-            <div class="bar"><div class="label">Bind bank card → Complete</div><div class="track"><div class="fill red" style="width:13.2%"></div></div><div class="delta bad">-0.94</div></div>
+          <h3>相邻步骤转化率变化</h3>
+          <div class="table-wrap" style="margin-top:14px">
+            <table class="funnel-table">
+              <thead>
+                <tr>
+                  <th>相邻步骤</th>
+                  <th>对照组</th>
+                  <th>实验组</th>
+                  <th>变化</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td>Landing → Start onboarding</td>
+                  <td class="num">80.50%</td>
+                  <td class="num">80.79%</td>
+                  <td class="num">+0.29 ppt</td>
+                </tr>
+                <tr>
+                  <td>Start → Submit basic info</td>
+                  <td class="num">69.90%</td>
+                  <td class="num">77.04%</td>
+                  <td class="num">+7.14 ppt</td>
+                </tr>
+                <tr>
+                  <td>Submit basic info → ID pass</td>
+                  <td class="num">81.60%</td>
+                  <td class="num">83.73%</td>
+                  <td class="num">+2.13 ppt</td>
+                </tr>
+                <tr>
+                  <td>ID pass → Risk assessment start</td>
+                  <td class="num">74.41%</td>
+                  <td class="num">78.81%</td>
+                  <td class="num">+4.40 ppt</td>
+                </tr>
+                <tr>
+                  <td>Risk start → Risk complete</td>
+                  <td class="num">72.90%</td>
+                  <td class="num">78.01%</td>
+                  <td class="num">+5.11 ppt</td>
+                </tr>
+                <tr>
+                  <td>Risk complete → Bind bank card</td>
+                  <td class="num">81.72%</td>
+                  <td class="num">82.35%</td>
+                  <td class="num">+0.64 ppt</td>
+                </tr>
+                <tr>
+                  <td>Bind bank card → Complete</td>
+                  <td class="num">82.63%</td>
+                  <td class="num">81.69%</td>
+                  <td class="num">-0.94 ppt</td>
+                </tr>
+              </tbody>
+            </table>
           </div>
-          <p class="note" style="margin-top:16px">单位：ppt。条形长度按绝对变化幅度缩放。</p>
         </div>
-        <div class="kv">
-          <div class="card">
-            <h3>最大改善点</h3>
-            <p>Start → Submit basic info 提升 7.14 ppt，说明信息填写阶段的中断率下降最明显。</p>
-          </div>
-          <div class="card">
-            <h3>第二改善点</h3>
-            <p>ID pass → Risk assessment start 与 Risk start → Risk complete 分别提升 4.40 与 5.11 ppt，风险测评段的推进效率更高。</p>
-          </div>
-          <div class="card">
-            <h3>末端回落的解释</h3>
-            <p>末端收口回落 0.94 ppt，但量级显著小于前中段改善；更多中等意向用户被推进到末端后，分母扩大可能带来轻微摊薄。</p>
-          </div>
-          <div class="card">
-            <h3>机制判断</h3>
-            <p>结果更符合“前中段摩擦下降”而非“末端收口增强”的解释。整体提升的主要来源位于资料填写与风险测评阶段。</p>
+
+        <div class="card">
+          <h3>机制判断</h3>
+          <div class="bar-list" style="margin-top:14px">
+            <div class="bar-row">
+              <div class="bar-head">
+                <span>基础信息填写阶段</span>
+                <span class="num">+7.14 ppt</span>
+              </div>
+              <div class="track"><div class="fill" style="width:100%"></div></div>
+              <div class="note">最大贡献点，说明表单负担下降后，开始填写的用户更容易顺利提交基础资料。</div>
+            </div>
+            <div class="bar-row">
+              <div class="bar-head">
+                <span>风险测评启动阶段</span>
+                <span class="num">+4.40 ppt</span>
+              </div>
+              <div class="track"><div class="fill" style="width:61.6%"></div></div>
+              <div class="note">说明用户对流程位置和下一步要求的理解成本下降，进入测评的中断率降低。</div>
+            </div>
+            <div class="bar-row">
+              <div class="bar-head">
+                <span>风险测评完成阶段</span>
+                <span class="num">+5.11 ppt</span>
+              </div>
+              <div class="track"><div class="fill" style="width:71.6%"></div></div>
+              <div class="note">完成测评环节的用户比例抬升，支持“前中段认知负担下降”这一解释。</div>
+            </div>
+            <div class="bar-row">
+              <div class="bar-head">
+                <span>最后一步收口</span>
+                <span class="num">-0.94 ppt</span>
+              </div>
+              <div class="track"><div class="fill" style="width:13.2%;opacity:.55"></div></div>
+              <div class="note">末端略降不足以推翻整体 uplift，更合理的解释是前中段改善扩大了末端分母，而 OTP、绑卡与 KYC 摩擦仍独立存在。</div>
+            </div>
           </div>
         </div>
       </div>
     </section>
 
-    <section id="channels">
-      <div class="section-head">
-        <h2>放量顺序</h2>
-        <p>渠道排序同时考虑 uplift、样本规模与业务价值。优先顺序的目标是先拿稳定收益，再观察不同渠道的效果漂移与服务承压。</p>
-      </div>
-      <div class="table-wrap card">
-        <table>
+    <section id="rollout">
+      <h2 class="section-title">分渠道灰度推进策略</h2>
+      <p class="section-kicker">当前不建议直接全量。更稳妥的推进方式，是先在 uplift 更高、业务弹性更强的渠道验证效果稳定性，再逐步扩到其余渠道。</p>
+
+      <div class="table-wrap">
+        <table class="channel-table">
           <thead>
             <tr>
               <th>渠道</th>
               <th>对照组</th>
               <th>实验组</th>
               <th>提升幅度</th>
-              <th>放量顺序</th>
+              <th>建议动作</th>
             </tr>
           </thead>
           <tbody>
             <tr>
               <td>推荐渠道</td>
-              <td>19.95%</td>
-              <td>25.60%</td>
-              <td class="good">+5.65 ppt</td>
-              <td><span class="priority p1">第一优先级</span></td>
+              <td class="num">19.95%</td>
+              <td class="num">25.60%</td>
+              <td class="num">+5.65 ppt</td>
+              <td><span class="pill">第一优先级</span></td>
             </tr>
             <tr>
               <td>付费投放</td>
-              <td>12.05%</td>
-              <td>17.64%</td>
-              <td class="good">+5.59 ppt</td>
-              <td><span class="priority p1">第一优先级</span></td>
+              <td class="num">12.05%</td>
+              <td class="num">17.64%</td>
+              <td class="num">+5.59 ppt</td>
+              <td><span class="pill">第一优先级</span></td>
             </tr>
             <tr>
               <td>线下客户经理</td>
-              <td>21.79%</td>
-              <td>26.77%</td>
-              <td class="good">+4.98 ppt</td>
-              <td><span class="priority p2">第二优先级</span></td>
+              <td class="num">21.79%</td>
+              <td class="num">26.77%</td>
+              <td class="num">+4.98 ppt</td>
+              <td><span class="pill neutral">第二梯队</span></td>
             </tr>
             <tr>
               <td>内容 / 搜索</td>
-              <td>17.48%</td>
-              <td>21.90%</td>
-              <td class="good">+4.41 ppt</td>
-              <td><span class="priority p2">第二优先级</span></td>
+              <td class="num">17.48%</td>
+              <td class="num">21.90%</td>
+              <td class="num">+4.41 ppt</td>
+              <td><span class="pill neutral">第二梯队</span></td>
             </tr>
             <tr>
               <td>应用商店</td>
-              <td>15.73%</td>
-              <td>19.16%</td>
-              <td class="good">+3.43 ppt</td>
-              <td><span class="priority p3">保守推进</span></td>
+              <td class="num">15.73%</td>
+              <td class="num">19.16%</td>
+              <td class="num">+3.43 ppt</td>
+              <td><span class="pill warn">保守推进</span></td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <div class="spacer"></div>
+
+      <div class="table-wrap">
+        <table class="rule-table">
+          <thead>
+            <tr>
+              <th>阶段</th>
+              <th>推进范围</th>
+              <th>建议通过条件</th>
+              <th>建议回滚条件</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>阶段一</td>
+              <td>推荐渠道、付费投放</td>
+              <td>
+                至少覆盖 14 个自然日并完成 7 日成熟窗后再读数；开户完成率 uplift 的 95% 区间下界仍大于 0；7 日留存率不转负；投诉率未出现持续性恶化。
+              </td>
+              <td>
+                投诉率出现连续性抬升；身份验证失败率、客服咨询量或风险问答中断率明显变差；assignment / exposure 口径出现 SRM 或跨设备识别异常。
+              </td>
+            </tr>
+            <tr>
+              <td>阶段二</td>
+              <td>线下客户经理、内容 / 搜索</td>
+              <td>
+                阶段一通过后再扩量，并要求渠道分层 uplift 方向与总体一致；短期质量指标维持稳定；周度效果未出现明显回落。
+              </td>
+              <td>
+                渠道 uplift 显著弱于总体水平且护栏转差；新增客诉或人工补救量抬升导致 unit economics 被稀释。
+              </td>
+            </tr>
+            <tr>
+              <td>阶段三</td>
+              <td>应用商店</td>
+              <td>
+                仅在前两阶段稳定后推进。需要同时观察安装后启动质量、身份校验失败率和末端绑卡完成率，避免把更弱的安装后意向流量直接并入总体结论。
+              </td>
+              <td>
+                末端收口率进一步下滑，或新增低质量开户导致短期量增但后续留存、首充和交易活跃不跟随改善。
+              </td>
             </tr>
           </tbody>
         </table>
       </div>
     </section>
 
-    <section id="value">
-      <div class="section-head">
-        <h2>潜在业务价值</h2>
-        <p>以下以每 10 万落地页访问用户为口径，用关键行为增量表达短中期业务价值。</p>
+    <section>
+      <h2 class="section-title">业务价值测算口径</h2>
+      <p class="section-kicker">下面的量化结果仅用于表达当前 uplift 在既有流量规模下的业务含义，不等同于长期收入或生命周期价值预测。</p>
+      <div class="grid-3">
+        <div class="card">
+          <h3>每 10 万落地页访问</h3>
+          <p style="font-size:34px;font-weight:800;margin-top:8px">+4,736</p>
+          <p class="small">新增开户完成。按当前点估计从 landing 到最终开户完成的增量折算。</p>
+        </div>
+        <div class="card">
+          <h3>每 10 万落地页访问</h3>
+          <p style="font-size:34px;font-weight:800;margin-top:8px">+1,858</p>
+          <p class="small">新增 7 日留存用户。适合作为短期质量信号，不替代 30 日留存或活跃交易用户。</p>
+        </div>
+        <div class="card">
+          <h3>每 10 万落地页访问</h3>
+          <p style="font-size:34px;font-weight:800;margin-top:8px">+1,940</p>
+          <p class="small">新增 7 日首充账户。方向上支持商业价值改善，但仍不能直接替代长期入金和交易规模口径。</p>
+        </div>
       </div>
-      <div class="grid smallgrid">
+      <div class="note">测算前提：默认渠道结构、流量质量和执行方式与本轮实验近似；若渠道 mix、投放策略或风控门槛变化，外推值应重新估算。</div>
+    </section>
+
+    <section id="risks">
+      <h2 class="section-title">实验风险与验证重点</h2>
+      <p class="section-kicker">“有 uplift”不等于可以不加审查地直接全量。当前更合理的做法，是把灰度阶段当作验证结果稳健性与业务可持续性的第二道门。</p>
+      <div class="grid-2">
         <div class="card">
-          <div class="metric-label">新增开户完成数</div>
-          <div class="metric-value">+4,736</div>
-          <div class="metric-sub">按开户完成率 uplift 粗略换算。</div>
+          <h3>需要继续验证的风险</h3>
+          <ul style="margin:0;padding-left:18px;color:#dfe8ff">
+            <li><strong>SRM：</strong>assignment、exposure 与分析 cohort 口径不一致时，uplift 解释力会明显下降。</li>
+            <li><strong>污染：</strong>跨渠道回流、重复进入链路与客服人工补救会稀释组间边界。</li>
+            <li><strong>跨设备识别：</strong>若账号键或设备图谱不稳定，可能产生跨组暴露或步骤漏记。</li>
+            <li><strong>成熟窗截断：</strong>7 日留存与 7 日首充必须在 mature cohort 上读取。</li>
+            <li><strong>新鲜感效应：</strong>早期 uplift 可能高于长期稳定效果，应按周追踪 effect drift。</li>
+          </ul>
         </div>
         <div class="card">
-          <div class="metric-label">新增 7 日留存用户数</div>
-          <div class="metric-value">+1,858</div>
-          <div class="metric-sub">留存同步抬升，说明改善不依赖明显体验牺牲。</div>
-        </div>
-        <div class="card">
-          <div class="metric-label">新增 7 日首充账户数</div>
-          <div class="metric-value">+1,940</div>
-          <div class="metric-sub">作为下游商业结果的早期信号使用。</div>
+          <h3>下一轮最应补充的日志与指标</h3>
+          <ul style="margin:0;padding-left:18px;color:#dfe8ff">
+            <li>首曝日志、曝光日志与用户去重规则，形成完整的 assignment → exposure → outcome 链条。</li>
+            <li>身份验证失败率、OTP 失败率、绑卡失败率、风险问答中断率。</li>
+            <li>客服咨询量、人工补救标签与投诉分类口径，判断是否用服务成本换转化。</li>
+            <li>30 日留存、首月入金、首月交易活跃与渠道分层质量结果。</li>
+          </ul>
         </div>
       </div>
     </section>
 
-    <section id="boundary">
-      <div class="section-head">
-        <h2>解释边界</h2>
-        <p>结果解释需要明确边界，避免把当前口径外推到无法支持的结论。</p>
-      </div>
-      <div class="grid two-col">
-        <div class="card">
-          <ul class="list">
-            <li>实验版本与对照版本在资料填写、进度反馈和疑问解释三个节点存在差异，因此本页结论对应的是版本整体差异，而不是单项元素的独立贡献。</li>
-            <li>7 日留存与 7 日首充属于短期代理指标，不能替代首月入金、30 日留存、交易活跃与 LTV。</li>
-            <li>SRM、污染、跨设备识别、成熟窗截断与新鲜感效应仍需在持续放量中监控。</li>
-          </ul>
-        </div>
-        <div class="card muted-card">
-          <div class="metric-label">数据说明</div>
-          <p class="note" style="font-size:15px;color:#dbe4fb;margin:0">页面使用脱敏模拟日志重建实验分析流程，目的是呈现指标体系、验证路径与决策边界；不对应任何真实机构的经营结果或客户数据。</p>
-        </div>
+    <section>
+      <h2 class="section-title">结论</h2>
+      <div class="card">
+        <p>
+          当前更稳妥的业务解释是：这轮改动主要降低了前中段认知负担与流程摩擦，把更多用户顺利推进到风险测评与后续环节，从而抬升 end-to-end completion。现有证据支持继续放量，但还不足以支持直接全量，更不适合把 uplift 机械外推为长期收入结论。
+        </p>
+        <p style="margin-top:14px">
+          因此，建议先按渠道灰度推进，在验证结果稳定性和短期质量约束后，再拆解单因素实验，收紧归因结论并决定最终上线范围。
+        </p>
       </div>
     </section>
   </main>
 
-  <footer class="footer">
-    <div class="container">
-      <div>链接：<a href="https://github.com/QILU-622/brokerage-onboarding-abtest" target="_blank" rel="noopener">GitHub 仓库</a> · <a href="https://github.com/QILU-622/brokerage-onboarding-abtest/blob/main/notebooks/brokerage_abtest_analysis.ipynb" target="_blank" rel="noopener">Notebook</a> · <a href="https://github.com/QILU-622/brokerage-onboarding-abtest/tree/main/sql" target="_blank" rel="noopener">SQL 查询</a></div>
+  <footer class="footer wrap">
+    <div class="panel">
+      注：本页为案例化实验复盘，数值用于说明分析框架与放量决策逻辑，不对应任何实际机构经营结果。所有百分比变化均为绝对百分点变化（ppt）。
     </div>
   </footer>
 </body>
