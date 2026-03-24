@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>券商 App 新客开户 A/B 实验评估｜Portfolio Case</title>
+  <title>券商 App 新客开户实验复盘｜灰度上线决策 Case</title>
   <style>
     :root{
       --bg:#0b1020;
@@ -229,16 +229,16 @@
 <body>
   <header class="hero">
     <div class="wrap">
-      <div class="eyebrow">BROKERAGE ONBOARDING A/B TEST · PORTFOLIO CASE</div>
-      <h1>券商 App 新客开户转化链路</h1>
-      <div class="subtitle">A/B 实验评估与上线决策</div>
+      <div class="eyebrow">EXPERIMENT REVIEW · ROLLOUT DECISION CASE</div>
+      <h1>券商 App 新客开户实验复盘</h1>
+      <div class="subtitle">从 uplift 识别到灰度上线决策</div>
       <p class="lead">
-        这个分析案例基于 synthetic data 复现券商开户流程优化实验：从业务问题定义、随机分流检查、漏斗诊断、分层 uplift、
-        置信区间，到灰度上线建议，完整呈现从问题定义到落地决策的分析流程。
+        这个项目不是把 A/B 实验做成一页“显著性展示”，而是把结果真正转成业务动作：
+        <strong>是否值得放量、效果主要来自哪里、为什么当前建议先灰度而不是直接全量。</strong>
       </p>
       <p class="lead note">
-        重点关注：效果来源、关键改善环节、渠道灰度顺序、实验风险与有效性威胁、以及上线后监控指标。
-        本项目不披露真实券商业务数据，以下结果与图表基于 synthetic data 生成，用于方法演示。
+        案例基于 synthetic data 复现真实实验分析流程，不披露任何真实券商用户信息；
+        但整体组织方式按业务复盘口径编排，保留了机制解释、实验边界、灰度顺序与上线后监控项。
       </p>
 
       <div class="top-links">
@@ -249,12 +249,12 @@
       </div>
 
       <nav class="nav">
-        <a href="#summary">结论摘要</a>
+        <a href="#summary">决策摘要</a>
+        <a href="#problem">业务问题</a>
         <a href="#design">实验设计</a>
-        <a href="#threats">实验风险</a>
         <a href="#results">实验结果</a>
-        <a href="#funnel">漏斗诊断</a>
-        <a href="#channel">分层与灰度</a>
+        <a href="#funnel">机制拆解</a>
+        <a href="#channel">灰度策略</a>
         <a href="#figures">图表</a>
         <a href="#limitations">局限性</a>
       </nav>
@@ -288,54 +288,59 @@
     </section>
 
     <section id="summary" class="section">
-      <h2>结论摘要</h2>
+      <h2>决策摘要</h2>
       <div class="grid split">
         <div class="card">
-          <h3>结论</h3>
-          <p>这轮 treatment 值得进入灰度上线，更重要的是，它表明 <strong>前中段信息填写与风险测评阶段</strong> 才是主要流失瓶颈，而不是最后一步收口。</p>
+          <h3>推荐动作</h3>
+          <p><strong>建议进入分渠道灰度，不建议直接全量。</strong></p>
 
-          <h3>上线建议</h3>
-          <p>主指标显著提升，留存同步改善，投诉率未见显著恶化。优先在 <strong>Referral</strong> 与 <strong>Paid social</strong> 两个 uplift 更高且样本更稳健的渠道先行灰度。</p>
+          <h3>当前证据为什么支持灰度</h3>
+          <p>主指标开户完成率从 <strong>16.82%</strong> 提升到 <strong>21.55%</strong>，绝对 uplift 为 <strong>+4.74 ppt</strong>，95% CI 为 <strong>[4.02, 5.45]</strong>。同时，7 日留存提升 <strong>+1.86 ppt</strong>，投诉率未见显著恶化，说明效果并非建立在明显体验受损之上。</p>
 
-          <h3>关键机制</h3>
-          <p>相较于“最后一步收口”，treatment 更明显地改善了 <strong>基础信息提交、进入风险测评、风险测评完成</strong> 三个相邻阶段之间的推进效率。</p>
+          <h3>为什么不是直接全量</h3>
+          <p>当前 treatment 属于<strong>表单精简 + 进度条提示 + FAQ 解释</strong>的组合式改动，只能确认组合效果，不能直接识别单项设计元素的独立贡献；此外，SRM、污染、跨设备识别、成熟窗截断与 novelty effect 仍需在灰度阶段继续验证。</p>
 
-          <h3>潜在业务价值</h3>
-          <p>若同等 uplift 可稳定外推，则每 10 万 landing 用户约可多带来 <strong>4,736 个开户完成、1,858 个 7 日留存</strong> 与 <strong>1,940 个 7 日首充</strong>。</p>
+          <h3>业务含义</h3>
+          <p>这轮实验更像是一次<strong>降低前中段认知负担</strong>的结构性改动，而不是单纯优化最后确认页的收口动作。</p>
         </div>
 
         <div class="card">
-          <h3>下一步实验</h3>
-          <p>当前 treatment 把 <strong>表单精简、进度条提示、关键疑问解释</strong> 打包上线。下一轮应拆解单因素贡献，避免组合实验难以归因。</p>
+          <h3>最重要的机制发现</h3>
+          <p>uplift 的主来源不是“最后一步更好关单”，而是<strong>基础信息填写与风险测评阶段的推进效率更高</strong>。</p>
 
           <div class="callout">
-            当前版本更接近“降低认知负担带来的结构性改善”，而不是“最后一步确认页的小修小补”。
+            最大改善发生在 <strong>Start → Submit basic info (+7.14 ppt)</strong>、<strong>ID pass → Risk assessment start (+4.40 ppt)</strong> 与 <strong>Risk start → Risk complete (+5.11 ppt)</strong>。
           </div>
 
           <div class="callout warn">
-            这也是为什么当前建议是<strong>分渠道灰度</strong>，而不是直接全量：除了组合式 treatment 难拆解外，还需要继续验证短期 uplift 是否稳定、是否存在 novelty effect、以及是否受到曝光污染与成熟窗截断影响。
+            因此当前更合理的产品动作不是“直接全量上线然后结束”，而是：<strong>先灰度验证稳定性，再拆解单因素实验做归因。</strong>
           </div>
+
+          <h3>潜在业务价值</h3>
+          <p>若 uplift 在后续灰度中保持稳定，则每 10 万 landing 用户约可多带来 <strong>4,736 个开户完成</strong>、<strong>1,858 个 7 日留存</strong> 与 <strong>1,940 个 7 日首充</strong>。</p>
         </div>
       </div>
     </section>
 
-    <section class="section">
-      <h2>业务问题与假设</h2>
-      <p>券商新客开户链路通常包含基础资料填写、身份校验、风险测评、绑卡与开户注册等多个高摩擦步骤。</p>
-      <p>业务痛点：流程长、表单重、解释不足，导致新客在关键环节出现显著 drop-off。</p>
-      <p>核心假设：若通过表单精简、进度提示与关键疑问解释降低认知成本，开户完成率应显著提升，且不应伤害体验护栏。</p>
-      <p>评估标准：不仅看主指标 uplift，还同时看留存、投诉与后续可转化业务结果，避免“用更高转化换来更差体验”。</p>
+    <section id="problem" class="section">
+      <h2>业务问题</h2>
+      <p>券商 App 新客开户链路通常包含基础资料填写、身份校验、风险测评、绑卡与开户注册等多个高摩擦步骤。对于 acquisition 成本较高的业务场景，用户是否能顺利穿过前中段链路，直接影响后续留存、入金与可转化用户池规模。</p>
+      <p>本案例要回答的不是“实验有没有显著”，而是三个更接近业务现场的问题：</p>
+      <ul>
+        <li>这组流程优化是否值得继续放量？</li>
+        <li>uplift 究竟发生在链路的哪个环节？</li>
+        <li>下一轮应该先拆哪一个因素，而不是继续笼统堆改动？</li>
+      </ul>
+      <p>核心假设是：如果通过<strong>表单精简、进度提示与关键疑问解释</strong>降低认知成本，那么开户完成率应显著提升，且不应以明显伤害体验护栏为代价。</p>
     </section>
 
     <section id="design" class="section">
       <h2>实验设计</h2>
       <div class="grid two-col">
         <div class="card">
-          <h3>随机化单位</h3>
-          <p>user-level 50/50 分流。Control = 23,256，Treatment = 22,962。</p>
-
-          <h3>观测窗口</h3>
-          <p>2026-01-01 至 2026-03-16，共 75 天，覆盖完整开户链路与 7 日后验指标。</p>
+          <h3>实验框架</h3>
+          <p><strong>Randomization：</strong>user-level 50/50 分流。Control = 23,256，Treatment = 22,962。</p>
+          <p><strong>Window：</strong>2026-01-01 至 2026-03-16，共 75 天，覆盖完整开户链路与 7 日后验指标。</p>
 
           <h3>指标体系</h3>
           <ul>
@@ -350,7 +355,7 @@
 
         <div class="card">
           <h3>平衡性检查</h3>
-          <p>渠道、设备、来源意图、年龄段分布均未见显著失衡，说明 treatment 效果更有可能来自流程改动本身，而不是样本结构偏差。</p>
+          <p>渠道、设备、来源意图、年龄段分布均未见显著失衡，说明观察到的 uplift 更可能来自流程改动本身，而不是样本结构偏差。</p>
           <ul>
             <li><code>channel</code>: p = 0.205</li>
             <li><code>device</code>: p = 0.286</li>
@@ -359,65 +364,15 @@
           </ul>
 
           <h3>样本识别能力</h3>
-          <p>按当前样本规模估算，在 α = .05、80% power 条件下，主指标约可识别 <strong>0.99 ppt</strong> 的绝对 uplift，而本次实际观察到的 uplift 为 <strong>4.74 ppt</strong>。</p>
-          <p class="note">解释含义：不是“勉强显著”，而是 observed effect 显著大于当前样本的可识别下限。</p>
-        </div>
-      </div>
-    </section>
-
-    <section id="threats" class="section">
-      <h2>实验风险与有效性威胁</h2>
-      <p>为了让这个案例更接近真实业务实验，除了 balance check，还需要主动讨论可能削弱因果解释力的风险来源。下面这部分不改变当前 headline result，但会决定是否适合直接全量上线。</p>
-
-      <div class="grid risk-grid">
-        <div class="card risk-card">
-          <h3><span class="badge">01</span> SRM（Sample Ratio Mismatch）</h3>
-          <p>Control / Treatment 为 23,256 / 22,962，偏离理想 50/50 分流约 0.64%，当前看不到明显异常分流信号。它意味着本次结果没有首先被“样本比例失真”破坏。</p>
-          <p>但正式项目里，SRM 仍然应该是第一道健康检查：一旦 assignment log、exposure log 与 analysis cohort 对不上，后续所有 uplift 解释都会失去基础。</p>
-          <div class="risk-level">当前判断：未见明显 SRM 迹象，但上线必须持续监控</div>
-        </div>
-
-        <div class="card risk-card">
-          <h3><span class="badge">02</span> 污染 / Interference</h3>
-          <p>如果用户重复进入开户链路、切换渠道回流、被客服人工补救、或在实验期内触发额外运营触达，就可能让 control 与 treatment 的暴露边界变得模糊。</p>
-          <p>这会让 uplift 同时混入“流程优化效果”和“后续运营干预效果”。因此正式落地时需要锁定首曝分组、对 user_id 去重，并尽量剔除人工介入造成的二次影响。</p>
-          <div class="risk-level">当前判断：需要曝光日志来进一步排查</div>
-        </div>
-
-        <div class="card risk-card">
-          <h3><span class="badge">03</span> 跨设备 / Identity Stitching</h3>
-          <p>同一用户若在 mobile / web 或不同设备间切换，而标识未正确合并，可能出现“同一用户跨组暴露”或步骤漏记，导致整体转化被高估或低估。</p>
-          <p>这类问题在开户注册链路尤其常见，因为 OTP、银行卡验证、KYC 上传等动作往往发生在不同端口。正式项目应以稳定 account key 或 device graph 完成 join，并单独监控 cross-device overlap。</p>
-          <div class="risk-level">当前判断：这类风险不会被普通 balance check 捕捉到</div>
-        </div>
-
-        <div class="card risk-card">
-          <h3><span class="badge">04</span> 观察窗截断 / Mature-window Censoring</h3>
-          <p>实验截止到 2026-03-16，而 7 日留存、7 日首充需要完整成熟窗。如果尾部用户尚未走满 7 天，就会系统性低估 post metrics，且可能对不同组影响不对称。</p>
-          <p>因此报告时应只保留 mature cohort，或在结果页明确说明尾部 cohort 是否被截断。短期 uplift 若没有成熟窗保护，很容易把“时间不够”误读为“效果变弱”。</p>
-          <div class="risk-level">当前判断：正式分析中应明确 mature-cohort 规则</div>
-        </div>
-
-        <div class="card risk-card">
-          <h3><span class="badge">05</span> Novelty Effect</h3>
-          <p>进度条与 FAQ 解释类改动，早期可能因为“新鲜感”和更高注意力而短暂抬升启动率与风险问答完成率；如果用户适应后回落，短期 uplift 可能高于长期稳定 uplift。</p>
-          <p>这也是为什么当前更适合灰度，而不是直接全量。上线后应该按周跟踪 effect drift，观察 uplift 是否快速回落，尤其是前中段步骤而非最终开户完成率。</p>
-          <div class="risk-level">当前判断：短期正向结果并不自动等于长期稳态结果</div>
-        </div>
-
-        <div class="card risk-card">
-          <h3><span class="badge">06</span> 为什么这部分重要</h3>
-          <p>如果不主动讨论这些威胁，项目很容易看起来像“只会报显著性”的作品集案例。把风险显性化，反而更接近真实业务中的实验复盘：结果成立是一层，结果为什么值得信、能不能放量，是另一层。</p>
-          <div class="callout">
-            因此本项目的更成熟结论不是“treatment 一定完美”，而是：<strong>在当前证据下，treatment 显示出可进入灰度的正向信号，但是否直接扩量，仍取决于 SRM、污染、跨设备与成熟窗等风险能否被进一步控制。</strong>
-          </div>
+          <p>按当前样本规模估算，在 α = .05、80% power 条件下，主指标约可识别 <strong>0.99 ppt</strong> 的绝对 uplift；本次实际观察到的 uplift 为 <strong>4.74 ppt</strong>。</p>
+          <p class="note">这意味着本次结果不是“刚好显著”，而是 observed effect 明显高于当前样本规模下的可识别下限。</p>
         </div>
       </div>
     </section>
 
     <section id="results" class="section">
       <h2>实验结果</h2>
-      <p>核心指标同时展示 effect size、95% CI 与对应业务含义。</p>
+      <p>核心指标同时展示 effect size、95% CI 与业务解释。重点不是只说“显著”，而是说明结论如何支持后续动作。</p>
       <div class="card">
         <table>
           <thead>
@@ -427,7 +382,7 @@
               <th>Treatment</th>
               <th>绝对变化</th>
               <th>95% CI</th>
-              <th>结论</th>
+              <th>业务解释</th>
             </tr>
           </thead>
           <tbody>
@@ -437,7 +392,7 @@
               <td>21.55%</td>
               <td>+4.74 ppt</td>
               <td>[4.02, 5.45]</td>
-              <td>主指标显著提升</td>
+              <td>主指标显著提升，支持继续灰度</td>
             </tr>
             <tr>
               <td>7 日留存率</td>
@@ -453,7 +408,7 @@
               <td>1.280%</td>
               <td>+0.00 ppt</td>
               <td>[-0.20, 0.21]</td>
-              <td>无显著差异</td>
+              <td>未见显著恶化</td>
             </tr>
             <tr>
               <td>7 日首充率（探索性）</td>
@@ -469,8 +424,8 @@
     </section>
 
     <section id="funnel" class="section">
-      <h2>漏斗诊断：效果主要发生在哪里</h2>
-      <p>为了定位 uplift 的主要来源，需要同时观察累计 reach 与相邻步骤转化率，判断改善究竟发生在哪个环节。</p>
+      <h2>机制拆解：uplift 主要来自哪里</h2>
+      <p>为了定位效果来源，需要同时观察累计 reach 与相邻步骤转化率，避免把“更多人走到后面”与“某一步本身更顺”混为一谈。</p>
 
       <div class="card">
         <h3>Step-to-step conversion 变化</h3>
@@ -497,32 +452,32 @@
 
       <div class="grid split" style="margin-top:16px;">
         <div class="card">
-          <h3>关键诊断</h3>
+          <h3>核心诊断</h3>
           <ul>
-            <li><strong>最大贡献点：</strong>基础信息提交阶段提升 +7.14 ppt，说明表单精简显著降低了填写摩擦与放弃率。</li>
-            <li><strong>第二贡献点：</strong>进入风险测评与完成风险测评分别提升 +4.40 ppt 与 +5.11 ppt，说明进度条提示与关键疑问解释有效降低了理解成本。</li>
-            <li><strong>整体结论：</strong>本轮 uplift 主要来自前中段摩擦下降，而不是最后一步收口改善。</li>
+            <li><strong>最大贡献点：</strong>Start → Submit basic info 提升 <strong>+7.14 ppt</strong>，说明表单精简显著降低了填写摩擦与放弃率。</li>
+            <li><strong>第二贡献点：</strong>ID pass → Risk assessment start 与 Risk start → Risk complete 分别提升 <strong>+4.40 ppt</strong> 和 <strong>+5.11 ppt</strong>，说明进度提示与 FAQ 解释降低了理解和决策负担。</li>
+            <li><strong>结论：</strong>本轮 uplift 主要来自<strong>前中段摩擦下降</strong>，而不是最后一步收口改善。</li>
           </ul>
         </div>
 
         <div class="card">
-          <h3>反常结果解释：为什么最后一步略降，整体结论仍然成立</h3>
-          <p><strong>现象：</strong><code>bind bank card → account open complete</code> 的 step conversion 略降 0.94 ppt，看起来与“整体正向 uplift”相反。</p>
+          <h3>为什么最后一步略降，整体结论仍然成立</h3>
+          <p><strong>现象：</strong><code>bind bank card → account open complete</code> 的 step conversion 略降 0.94 ppt，看起来与整体正向 uplift 相反。</p>
           <ul>
-            <li><strong>分母构成变化：</strong>treatment 把更多中等意向用户推进到了更后面阶段，最后一步的分母因此扩大，进入终点的人群结构不再与 control 完全相同。换句话说，更多人能走到末端，但其中一部分本来就不是最强意向用户，末端收口率略被摊薄是可能的。</li>
-            <li><strong>末端摩擦并未被当前改动直接触及：</strong>表单精简、进度条、FAQ 主要作用在前中段认知负担；而绑卡后的最终开户完成，往往更多受 OTP、银行卡验证、KYC 复核、外部跳转等待等因素影响。这些摩擦没有被当前 treatment 真正改掉。</li>
-            <li><strong>幅度大小不对称：</strong>末端的 -0.94 ppt 明显小于前中段 +7.14 / +4.40 / +5.11 ppt 的提升，因此 end-to-end completion 仍然显著抬升。它更像“新增流量的质量分布更广”，而不是“整体体验恶化”。</li>
+            <li><strong>分母构成变化：</strong>treatment 把更多中等意向用户推进到了末端，最后一步分母扩大，末端收口率被轻微摊薄是可能的。</li>
+            <li><strong>末端摩擦未被直接解决：</strong>OTP、银行卡验证、KYC 复核、外部跳转等待等因素仍然存在，这些并不是当前 treatment 的主要作用点。</li>
+            <li><strong>量级不对称：</strong>末端 -0.94 ppt 明显小于前中段 +7.14 / +4.40 / +5.11 ppt 的改善，因此不会推翻 end-to-end completion 的显著提升。</li>
           </ul>
           <div class="callout">
-            更成熟的解释不是“最后一步也优化了”，而是：<strong>当前 treatment 主要完成了把用户更高比例地送到末端，但末端仍保留外部验证和流程收口摩擦，因此会出现前中段显著改善、最后一步小幅回落、整体转化仍大幅上升的组合。</strong>
+            更成熟的解释不是“最后一步也优化了”，而是：<strong>当前 treatment 先把更多用户成功送到末端，但末端收口摩擦仍然独立存在。</strong>
           </div>
         </div>
       </div>
     </section>
 
     <section id="channel" class="section">
-      <h2>渠道分层与灰度优先级</h2>
-      <p>不是所有渠道都应该同时全量。更成熟的做法是：先看分层效果，再决定灰度先后顺序与资源投入重点。</p>
+      <h2>灰度策略：先在哪些渠道放量</h2>
+      <p>更成熟的做法不是默认全渠道一起推，而是先看分层效果，再决定灰度顺序与资源投入重点。</p>
       <div class="card">
         <table>
           <thead>
@@ -543,11 +498,11 @@
           </tbody>
         </table>
 
-        <h3>为什么这样灰度</h3>
+        <h3>灰度逻辑</h3>
         <ul>
           <li><strong>Referral / Paid social 优先：</strong>绝对 uplift 更高，说明对高摩擦来源用户更有效，资源投入回报更直接。</li>
-          <li><strong>不是直接全量：</strong>当前 treatment 属于多因素打包改动，且开户流程还受合规、KYC 成功率与客服承压影响，先灰度更稳妥。</li>
-          <li><strong>灰度阶段继续跟踪：</strong>7 日投诉率、身份验证失败率、客服咨询量、首充率与高价值用户激活质量。</li>
+          <li><strong>不直接全量：</strong>当前 treatment 仍受组合改动、合规链路、KYC 成功率与客服承压影响，先灰度更接近真实业务决策。</li>
+          <li><strong>灰度阶段继续跟踪：</strong>7 日投诉率、身份验证失败率、客服咨询量、首充率、成熟 cohort 质量与 effect drift。</li>
         </ul>
       </div>
     </section>
@@ -564,15 +519,15 @@
         <div class="card">
           <div class="stat-label">7-day retained users</div>
           <div class="stat-value">+1,858</div>
-          <div class="stat-sub">留存未被“只追求转化率”所牺牲，反而同步提升，说明这轮优化更可能是降低摩擦而非误导用户。</div>
+          <div class="stat-sub">留存同步提升，说明这轮优化更像降低摩擦，而不是靠误导或强刺激换来短期转化。</div>
         </div>
         <div class="card">
           <div class="stat-label">7-day funded accounts</div>
           <div class="stat-value">+1,940</div>
-          <div class="stat-sub">首充率方向与主指标一致，可作为潜在商业价值的早期信号，但仍需配合更长期的资金留存与交易活跃指标继续验证。</div>
+          <div class="stat-sub">首充率方向与主指标一致，可作为潜在商业价值的早期信号，但仍需要更长期收入指标继续验证。</div>
         </div>
         <div class="card">
-          <div class="stat-label">商业解释边界</div>
+          <div class="stat-label">结论边界</div>
           <div class="stat-value">短期代理指标</div>
           <div class="stat-sub">当前结果支持“更可能带来业务收益”的方向判断，但不能替代首月入金、30 日留存、交易活跃和 LTV。</div>
         </div>
@@ -581,7 +536,7 @@
 
     <section id="figures" class="section">
       <h2>图表</h2>
-      <p>以下图表分别对应整体漏斗 reach、主指标与护栏、渠道 uplift 以及 overall effects 的置信区间。</p>
+      <p>保留四张核心图，用来支撑整体 reach、主指标与护栏、渠道 uplift 以及 overall effects 的不确定性表达。</p>
       <div class="grid fig-grid">
         <figure>
           <img src="figures/01_cumulative_funnel.png" alt="Cumulative stage reach by experiment group" />
@@ -589,15 +544,15 @@
         </figure>
         <figure>
           <img src="figures/02_primary_guardrails.png" alt="Primary and guardrail metrics" />
-          <figcaption><strong>Primary &amp; guardrail metrics：</strong>主指标与护栏分开展示，更清楚地说明“效果提升并没有建立在体验受损之上”。</figcaption>
+          <figcaption><strong>Primary &amp; guardrail metrics：</strong>把主指标与护栏拆开看，避免只报“转化率变好了”而忽略体验边界。</figcaption>
         </figure>
         <figure>
           <img src="figures/03_channel_uplift.png" alt="Channel uplift with CI and sample size" />
-          <figcaption><strong>Channel uplift with prioritisation：</strong>不仅看 uplift 大小，更要结合样本量、置信区间与渠道属性做灰度优先级判断。</figcaption>
+          <figcaption><strong>Channel uplift with prioritisation：</strong>不仅看 uplift 大小，还结合样本量、置信区间与渠道属性决定灰度优先级。</figcaption>
         </figure>
         <figure>
           <img src="figures/04_effect_ci.png" alt="Treatment effect with exact 95% confidence intervals" />
-          <figcaption><strong>Exact confidence intervals：</strong>用精确区间值替代“显著 / 不显著”的笼统结论，更利于呈现 effect size 与不确定性。</figcaption>
+          <figcaption><strong>Exact confidence intervals：</strong>用 effect size 与区间展示不确定性，而不是只给“显著 / 不显著”的二元判断。</figcaption>
         </figure>
       </div>
     </section>
@@ -608,10 +563,10 @@
         <div class="card">
           <h3>当前局限性</h3>
           <ul>
-            <li>本案例使用 synthetic data 复现券商开户实验分析流程，相关结论仅用于方法演示。</li>
-            <li>当前 treatment 为多项改动打包，因此只能识别“组合效果”，不能直接识别每个设计元素的独立贡献。</li>
-            <li>7 日留存与 7 日首充仍属于短期质量指标，不能替代长期入金质量、长期交易活跃或客户生命周期价值。</li>
-            <li>本页新增讨论了 SRM、污染、跨设备、成熟窗截断与 novelty effect，但这些风险在当前案例中主要是“应被显性化并持续监控的真实威胁”，并不代表已由现有数据完全排除。</li>
+            <li>本案例使用 synthetic data 复现实验分析流程，相关结论仅用于方法演示与作品集展示。</li>
+            <li>当前 treatment 为多项改动打包，因此只能识别组合效果，不能直接识别每个设计元素的独立贡献。</li>
+            <li>7 日留存与 7 日首充仍属于短期质量指标，不能替代长期入金质量、交易活跃或客户生命周期价值。</li>
+            <li>SRM、污染、跨设备、成熟窗截断与 novelty effect 在当前案例中被显性化讨论，但并不意味着已经被现有数据完全排除。</li>
           </ul>
         </div>
         <div class="card">
@@ -621,7 +576,7 @@
             <li>新增护栏：身份验证失败率、客服咨询量、风险问答中断率。</li>
             <li>新增日志：首曝日志、曝光日志、客服人工介入标签、cross-device stitching 质量标记。</li>
             <li>新增分层：新老客、设备类型、来源意图、是否高价值潜客。</li>
-            <li>补长期指标：首月入金、首月交易活跃、30 日留存，并按周跟踪 novelty effect 的 effect drift。</li>
+            <li>补长期指标：首月入金、首月交易活跃、30 日留存，并按周跟踪 effect drift。</li>
           </ul>
         </div>
       </div>
@@ -639,7 +594,7 @@
 
   <footer class="footer">
     <div class="wrap">
-      注：本页使用 synthetic data 复现实验评估分析场景。所有百分比变化均为绝对百分点变化（ppt）。
+      注：本页使用 synthetic data 复现实验评估场景。所有百分比变化均为绝对百分点变化（ppt）。
     </div>
   </footer>
 </body>
