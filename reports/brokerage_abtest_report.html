@@ -1,279 +1,102 @@
-<!DOCTYPE html>
-<html lang="zh-CN">
-<head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>券商 App 新客开户实验复盘报告</title>
-  <style>
-    :root {
-      --bg: #f6f8fb;
-      --card: #ffffff;
-      --text: #1f2937;
-      --muted: #5b6472;
-      --line: #d9e0ea;
-      --accent: #175cd3;
-    }
-    * { box-sizing: border-box; }
-    body {
-      margin: 0;
-      background: var(--bg);
-      color: var(--text);
-      font: 16px/1.75 -apple-system, BlinkMacSystemFont, "Segoe UI", "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei", sans-serif;
-    }
-    .wrap {
-      max-width: 980px;
-      margin: 0 auto;
-      padding: 40px 20px 72px;
-    }
-    .card {
-      background: var(--card);
-      border: 1px solid var(--line);
-      border-radius: 16px;
-      padding: 28px;
-      margin-bottom: 18px;
-      box-shadow: 0 8px 24px rgba(16, 24, 40, 0.04);
-    }
-    h1, h2, h3 { line-height: 1.35; margin: 0 0 14px; }
-    h1 { font-size: 34px; }
-    h2 {
-      font-size: 24px;
-      padding-bottom: 10px;
-      border-bottom: 1px solid var(--line);
-      margin-bottom: 18px;
-    }
-    h3 { font-size: 18px; margin-top: 22px; }
-    p { margin: 0 0 14px; }
-    ul, ol { margin: 0 0 14px 22px; }
-    li { margin: 6px 0; }
-    .lead {
-      color: var(--muted);
-      font-size: 18px;
-    }
-    .grid {
-      display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
-      gap: 14px;
-      margin-top: 14px;
-    }
-    .metric {
-      border: 1px solid var(--line);
-      border-radius: 14px;
-      padding: 16px;
-      background: #fbfcfe;
-    }
-    .metric .k { color: var(--muted); font-size: 14px; }
-    .metric .v { font-size: 28px; font-weight: 700; margin: 6px 0; }
-    table {
-      width: 100%;
-      border-collapse: collapse;
-      margin: 12px 0 8px;
-      font-size: 15px;
-      background: #fff;
-    }
-    th, td {
-      border: 1px solid var(--line);
-      padding: 10px 12px;
-      text-align: left;
-      vertical-align: top;
-    }
-    th {
-      background: #f3f6fb;
-      font-weight: 700;
-    }
-    code {
-      background: #f3f4f6;
-      padding: 2px 6px;
-      border-radius: 6px;
-      font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
-      font-size: 0.92em;
-    }
-    .note {
-      color: var(--muted);
-      font-size: 14px;
-    }
-  </style>
-</head>
-<body>
-  <div class="wrap">
-    <div class="card">
-      <h1>券商 App 新客开户实验复盘报告</h1>
-      <p class="lead">围绕开户转化、护栏指标与灰度上线决策的实验复盘。</p>
-      <div class="grid">
-        <div class="metric"><div class="k">开户完成率提升</div><div class="v">+4.74 ppt</div><div>16.82% → 21.55%</div></div>
-        <div class="metric"><div class="k">7 日留存率提升</div><div class="v">+1.86 ppt</div><div>95% CI [0.98, 2.73]</div></div>
-        <div class="metric"><div class="k">7 日投诉率变化</div><div class="v">+0.00 ppt</div><div>未见显著恶化</div></div>
-        <div class="metric"><div class="k">7 日首充率提升</div><div class="v">+1.94 ppt</div><div>95% CI [1.07, 2.81]</div></div>
-      </div>
-    </div>
-
-    <section class="card">
-      <h2>一、执行摘要</h2>
-      <p>本次实验评估的目标，是验证“表单精简 + 进度条提示 + 关键疑问解释”这一组流程优化，是否能够在不伤害体验护栏的前提下，显著提升券商 App 新客开户完成率。</p>
-      <p>实验结果显示，开户完成率由 <strong>16.82%</strong> 提升至 <strong>21.55%</strong>，绝对提升 <strong>+4.74 ppt</strong>，95% 置信区间为 <strong>[4.02, 5.45]</strong>；7 日留存率提升 <strong>+1.86 ppt</strong>，7 日投诉率未见显著恶化，7 日首充率提升 <strong>+1.94 ppt</strong>。</p>
-      <p>基于当前证据，建议进入<strong>分渠道灰度上线</strong>，暂不建议直接全量。</p>
-    </section>
-
-    <section class="card">
-      <h2>二、业务背景</h2>
-      <p>券商新客开户是典型的高摩擦业务流程。用户需要完成多步资料填写、身份验证、风险测评与绑卡操作。对于获客成本较高的业务场景，前中段链路是否顺利，直接影响后续留存、首充和可转化用户池规模。</p>
-      <p>当前需要回答三个核心决策问题：</p>
-      <ol>
-        <li>这组流程优化是否真的提升了开户完成率；</li>
-        <li>效果主要来自哪个步骤；</li>
-        <li>当前阶段应直接全量，还是先进入灰度上线。</li>
-      </ol>
-    </section>
-
-    <section class="card">
-      <h2>三、实验设计</h2>
-      <h3>3.1 随机分流</h3>
-      <ul>
-        <li>分流单位：<strong>用户层级</strong></li>
-        <li>分流比例：<strong>50/50</strong></li>
-        <li>对照组：23,256</li>
-        <li>实验组：22,962</li>
-      </ul>
-      <h3>3.2 观察窗口</h3>
-      <ul>
-        <li>时间范围：<strong>2026-01-01 至 2026-03-16</strong></li>
-        <li>观测周期：<strong>75 天</strong></li>
-      </ul>
-      <h3>3.3 指标体系</h3>
-      <p><strong>主指标：</strong>开户完成率</p>
-      <p><strong>护栏指标：</strong>7 日留存率、7 日投诉率</p>
-      <p><strong>探索性指标：</strong>7 日首充率</p>
-      <h3>3.4 统计方法</h3>
-      <ul>
-        <li>平衡性检查</li>
-        <li>双样本比例检验</li>
-        <li>95% 置信区间估计</li>
-        <li>漏斗拆解分析</li>
-        <li>渠道层面 Holm 多重比较校正</li>
-      </ul>
-      <h3>3.5 样本识别能力</h3>
-      <p>在当前样本规模下，主指标在 <strong>α = .05、80% power</strong> 条件下可识别约 <strong>0.99 ppt</strong> 的绝对提升。本实验实际观察到的主指标提升为 <strong>4.74 ppt</strong>，明显高于识别下限。</p>
-    </section>
-
-    <section class="card">
-      <h2>四、平衡性检查</h2>
-      <p>渠道、设备、来源意图与年龄段分布均未见显著失衡：</p>
-      <ul>
-        <li>channel：p = 0.205</li>
-        <li>device：p = 0.286</li>
-        <li>intent：p = 0.421</li>
-        <li>age：p = 0.936</li>
-      </ul>
-      <p>这说明实验组与对照组具有较好的可比性，当前结果更可能来自流程改动本身，而非样本结构偏差。</p>
-    </section>
-
-    <section class="card">
-      <h2>五、整体结果</h2>
-      <table>
-        <thead>
-          <tr>
-            <th>指标</th><th>对照组</th><th>实验组</th><th>绝对变化</th><th>95% 置信区间</th><th>业务判断</th>
-          </tr>
-        </thead>
-        <tbody>
-          <tr><td>开户完成率</td><td>16.82%</td><td>21.55%</td><td><strong>+4.74 ppt</strong></td><td>[4.02, 5.45]</td><td>主指标显著提升，支持继续灰度</td></tr>
-          <tr><td>7 日留存率</td><td>35.23%</td><td>37.09%</td><td><strong>+1.86 ppt</strong></td><td>[0.98, 2.73]</td><td>留存同步改善</td></tr>
-          <tr><td>7 日投诉率</td><td>1.277%</td><td>1.280%</td><td>+0.00 ppt</td><td>[-0.20, 0.21]</td><td>未见显著恶化</td></tr>
-          <tr><td>7 日首充率</td><td>34.18%</td><td>36.12%</td><td><strong>+1.94 ppt</strong></td><td>[1.07, 2.81]</td><td>商业结果方向一致</td></tr>
-        </tbody>
-      </table>
-      <h3>结果解读</h3>
-      <p>这一组结果比单看“主指标显著提升”更有业务意义：主指标改善、护栏未见明显恶化、留存与首充方向一致。因此，这轮实验更像是在<strong>降低流程摩擦</strong>，而不是通过误导或催促换取短期转化。</p>
-    </section>
-
-    <section class="card">
-      <h2>六、漏斗诊断</h2>
-      <h3>6.1 累计阶段到达率</h3>
-      <p>实验组在多个阶段的累计到达率均高于对照组，说明整体链路推进更顺畅。</p>
-      <h3>6.2 相邻步骤转化率</h3>
-      <table>
-        <thead>
-          <tr><th>相邻步骤</th><th>对照组</th><th>实验组</th><th>绝对变化</th></tr>
-        </thead>
-        <tbody>
-          <tr><td>Landing → Start onboarding</td><td>80.50%</td><td>80.79%</td><td>+0.29 ppt</td></tr>
-          <tr><td>Start → Submit basic info</td><td>69.90%</td><td>77.04%</td><td><strong>+7.14 ppt</strong></td></tr>
-          <tr><td>Submit basic info → ID pass</td><td>81.60%</td><td>83.73%</td><td>+2.13 ppt</td></tr>
-          <tr><td>ID pass → Risk assessment start</td><td>74.41%</td><td>78.81%</td><td><strong>+4.40 ppt</strong></td></tr>
-          <tr><td>Risk start → Risk complete</td><td>72.90%</td><td>78.01%</td><td><strong>+5.11 ppt</strong></td></tr>
-          <tr><td>Risk complete → Bind bank card</td><td>81.72%</td><td>82.35%</td><td>+0.64 ppt</td></tr>
-          <tr><td>Bind bank card → Complete</td><td>82.63%</td><td>81.69%</td><td><strong>-0.94 ppt</strong></td></tr>
-        </tbody>
-      </table>
-      <h3>6.3 核心诊断</h3>
-      <ol>
-        <li><strong>基础信息填写</strong>是最明显的改善点，表单精简直接降低了放弃率；</li>
-        <li><strong>风险测评进入与完成</strong>也明显提升，说明进度条提示与关键疑问解释有效降低了理解成本；</li>
-        <li><strong>最后一步并不是核心贡献来源</strong>，甚至略有下降，说明整体提升主要来自前中段流程推进，而非末端收口优化。</li>
-      </ol>
-      <h3>6.4 为什么最后一步略降，整体结论仍然成立</h3>
-      <ul>
-        <li><strong>分母构成变化</strong>：更多中等意向用户被推进到末端，最后一步分母扩大后，收口率被轻微摊薄是可能的；</li>
-        <li><strong>末端摩擦未被直接解决</strong>：OTP、银行卡验证、KYC 复核、外部跳转等待等因素仍然存在；</li>
-        <li><strong>量级不对称</strong>：末端 -0.94 ppt 明显小于前中段 +7.14 / +4.40 / +5.11 ppt 的改善幅度，因此不会推翻端到端完成率的显著提升。</li>
-      </ul>
-    </section>
-
-    <section class="card">
-      <h2>七、渠道异质性</h2>
-      <table>
-        <thead>
-          <tr><th>渠道</th><th>对照组</th><th>实验组</th><th>提升幅度</th><th>建议动作</th></tr>
-        </thead>
-        <tbody>
-          <tr><td>推荐渠道</td><td>19.95%</td><td>25.60%</td><td><strong>+5.65 ppt</strong></td><td>第一优先级灰度</td></tr>
-          <tr><td>付费投放</td><td>12.05%</td><td>17.64%</td><td><strong>+5.59 ppt</strong></td><td>第一优先级灰度</td></tr>
-          <tr><td>线下客户经理</td><td>21.79%</td><td>26.77%</td><td>+4.98 ppt</td><td>第二优先级</td></tr>
-          <tr><td>内容 / 搜索</td><td>17.48%</td><td>21.90%</td><td>+4.41 ppt</td><td>第二优先级</td></tr>
-          <tr><td>应用商店</td><td>15.73%</td><td>19.16%</td><td>+3.43 ppt</td><td>保守推进</td></tr>
-        </tbody>
-      </table>
-      <h3>渠道解读</h3>
-      <p>各渠道提升均为正，且校正后总体方向一致。推荐渠道与付费投放的提升最高，说明当前这组改动对高摩擦来源用户更有效，适合作为优先灰度渠道。</p>
-    </section>
-
-    <section class="card">
-      <h2>八、灰度上线建议</h2>
-      <h3>8.1 第一阶段</h3>
-      <p>优先在 <strong>推荐渠道 + 付费投放</strong> 渠道灰度上线。</p>
-      <h3>8.2 第二阶段</h3>
-      <p>若护栏保持稳定，再扩展到线下客户经理与内容 / 搜索。</p>
-      <h3>8.3 灰度期间持续跟踪的指标</h3>
-      <ul>
-        <li>7 日投诉率</li>
-        <li>身份验证失败率</li>
-        <li>客服咨询量</li>
-        <li>7 日首充率</li>
-        <li>高价值用户激活质量</li>
-      </ul>
-      <h3>8.4 为什么不建议直接全量</h3>
-      <p>因为当前这组改动由多项改动打包构成，且开户注册链路受合规、身份校验与服务资源约束较强，直接全量上线会降低归因清晰度，也会扩大潜在风险暴露。</p>
-    </section>
-
-    <section class="card">
-      <h2>九、实验风险与有效性威胁</h2>
-      <ul>
-        <li><strong>SRM（样本比例失衡）</strong>：当前比例未见明显异常，但正式环境中仍应作为第一道健康检查。</li>
-        <li><strong>污染 / 干扰</strong>：用户跨渠道回流、客服人工补救、重复进入链路，都会稀释组间边界。</li>
-        <li><strong>跨设备识别问题</strong>：用户在不同设备间切换时，若身份未正确合并，可能出现跨组暴露或步骤漏记。</li>
-        <li><strong>观察窗截断</strong>：7 日留存和 7 日首充需要完整成熟窗，尾部样本若未成熟会系统性低估结果。</li>
-        <li><strong>新鲜感效应</strong>：进度条与 FAQ 类改动，可能在实验早期产生短期抬升，后续需按周观察效果漂移。</li>
-      </ul>
-      <p>这些风险不会自动推翻当前结果，但会影响“是否适合直接全量”的判断，因此更适合先灰度、再验证稳定性。</p>
-    </section>
-
-    <section class="card">
-      <h2>十、数据与复现说明</h2>
-      <ul>
-        <li>数据为模拟生成，仅用于复现实验评估框架；</li>
-        <li>相关结论用于展示分析方法、复盘结构与决策过程；</li>
-        <li>不对应任何真实券商用户、渠道或业务结果。</li>
-      </ul>
-    </section>
-  </div>
-</body>
-</html>
+<!doctype html><html lang="zh-CN"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>分析报告｜券商 App 新客开户实验复盘</title><style>
+body{margin:0;background:#0b1020;color:#e8eefc;font-family:-apple-system,BlinkMacSystemFont,"PingFang SC","Microsoft YaHei",sans-serif;line-height:1.75}
+.wrap{max-width:920px;margin:0 auto;padding:42px 24px 70px} h1,h2,h3{line-height:1.25} h1{font-size:40px} h2{margin-top:34px;font-size:28px} h3{margin-top:22px;font-size:20px} p,li{font-size:16px;color:#d7e0fb} code{background:#16203d;padding:2px 6px;border-radius:6px} table{width:100%;border-collapse:collapse;margin:14px 0 22px} th,td{border:1px solid #2a3966;padding:10px 12px;text-align:left;vertical-align:top} th{background:#16203d} a{color:#b9ceff} .top{margin-bottom:22px} .tag{color:#9fb0d9;font-size:13px;letter-spacing:.12em;text-transform:uppercase}</style></head><body><div class="wrap"><div class="top"><div class="tag">Report</div><h1>券商 App 新客开户实验复盘</h1><p><a href="../index.html">返回项目主页</a></p></div><h1>券商 App 新客开户实验复盘</h1>
+<h2>一、问题定义</h2>
+<p>券商 App 新客开户链路包含资料填写、身份校验、风险测评、绑卡与开户注册等多个高摩擦步骤。对于获客成本较高的业务场景，前中段流失不仅会压缩开户完成数，也会削弱后续留存、首充与可运营用户池规模。</p>
+<p>本次复盘关注三个业务问题：</p>
+<p>1. 这组流程优化是否值得继续放量。</p>
+<p>2. 效果主要发生在链路的哪个环节。</p>
+<p>3. 当前应直接全量，还是先按渠道灰度推进。</p>
+<h2>二、实验设计</h2>
+<h3>1. 实验框架</h3>
+<ul>
+<li>随机分流：用户层级 50/50 分流</li>
+<li>样本量：46,218（对照组 23,256；实验组 22,962）</li>
+<li>观察窗口：2026-01-01 至 2026-03-16，共 75 天</li>
+</ul>
+<h3>2. 指标体系</h3>
+<ul>
+<li>主指标：开户完成率</li>
+<li>护栏指标：7 日留存率、7 日投诉率</li>
+<li>探索性指标：7 日首充率</li>
+</ul>
+<h3>3. 统计方法</h3>
+<p>采用平衡性检查、双样本比例检验和 95% 置信区间；分渠道结果额外进行 Holm 多重比较校正。</p>
+<p>平衡性检查未见明显失衡：</p>
+<ul>
+<li>channel：p = 0.205</li>
+<li>device：p = 0.286</li>
+<li>intent：p = 0.421</li>
+<li>age：p = 0.936</li>
+</ul>
+<h2>三、核心结果</h2>
+<table><thead><tr><th>指标</th><th>对照组</th><th>实验组</th><th>绝对变化</th><th>95% 置信区间</th><th>业务判断</th></tr></thead><tbody>
+<tr><td>开户完成率</td><td>16.82%</td><td>21.55%</td><td>+4.74 ppt</td><td>[4.02, 5.45]</td><td>主指标显著提升，支持继续灰度</td></tr>
+<tr><td>7 日留存率</td><td>35.23%</td><td>37.09%</td><td>+1.86 ppt</td><td>[0.98, 2.73]</td><td>短期质量同步改善</td></tr>
+<tr><td>7 日投诉率</td><td>1.277%</td><td>1.280%</td><td>+0.00 ppt</td><td>[-0.20, 0.21]</td><td>未见显著恶化</td></tr>
+<tr><td>7 日首充率（探索性）</td><td>34.18%</td><td>36.12%</td><td>+1.94 ppt</td><td>[1.07, 2.81]</td><td>商业结果方向一致</td></tr>
+</tbody></table>
+<h2>四、机制拆解</h2>
+<h3>1. 相邻步骤转化率变化</h3>
+<table><thead><tr><th>相邻阶段</th><th>对照组</th><th>实验组</th><th>变化</th></tr></thead><tbody>
+<tr><td>Landing → Start onboarding</td><td>80.50%</td><td>80.79%</td><td>+0.29 ppt</td></tr>
+<tr><td>Start → Submit basic info</td><td>69.90%</td><td>77.04%</td><td>+7.14 ppt</td></tr>
+<tr><td>Submit basic info → ID pass</td><td>81.60%</td><td>83.73%</td><td>+2.13 ppt</td></tr>
+<tr><td>ID pass → Risk assessment start</td><td>74.41%</td><td>78.81%</td><td>+4.40 ppt</td></tr>
+<tr><td>Risk start → Risk complete</td><td>72.90%</td><td>78.01%</td><td>+5.11 ppt</td></tr>
+<tr><td>Risk complete → Bind bank card</td><td>81.72%</td><td>82.35%</td><td>+0.64 ppt</td></tr>
+<tr><td>Bind bank card → Complete</td><td>82.63%</td><td>81.69%</td><td>-0.94 ppt</td></tr>
+</tbody></table>
+<h3>2. 机制判断</h3>
+<p>主要改善集中在两段：</p>
+<ul>
+<li>基础信息填写阶段推进更顺畅。</li>
+<li>风险测评启动与完成阶段中断率下降。</li>
+</ul>
+<p>因此，更稳妥的解释是：本轮改动降低了前中段认知负担和流程摩擦，推动更多用户走到链路末端。</p>
+<h3>3. 为什么最后一步略降，整体结论仍然成立</h3>
+<p>末端 <code>Bind bank card → Complete</code> 相邻步骤转化率略降 0.94 ppt，但不足以推翻整体正向结论，原因主要有三点：</p>
+<p>1. 前中段改善将更多中等意向用户推到末端，末端分母扩大后，收口率被轻微摊薄是可能的。</p>
+<p>2. OTP、银行卡验证、KYC 复核和外部跳转等待等末端摩擦未被本轮改动直接解决。</p>
+<p>3. 末端回落量级明显小于前中段几个关键节点的改善幅度，因此不会改变 end-to-end completion 的整体提升方向。</p>
+<h2>五、决策建议</h2>
+<h3>1. 当前建议</h3>
+<p>建议进入分渠道灰度，不建议直接全量。</p>
+<h3>2. 原因</h3>
+<ul>
+<li>主指标显著改善，短期质量指标方向一致。</li>
+<li>组合式改动只能确认组合效果，不能直接识别单一元素贡献。</li>
+<li>SRM、污染、跨设备识别、成熟窗截断与新鲜感效应仍需在灰度阶段继续验证。</li>
+<li>7 日留存和 7 日首充仍属于短期代理指标，不能替代首月入金、30 日留存、交易活跃与 LTV。</li>
+</ul>
+<h3>3. 灰度顺序</h3>
+<table><thead><tr><th>渠道</th><th>对照组</th><th>实验组</th><th>提升幅度</th><th>建议</th></tr></thead><tbody>
+<tr><td>推荐渠道</td><td>19.95%</td><td>25.60%</td><td>+5.65 ppt</td><td>第一优先级灰度</td></tr>
+<tr><td>付费投放</td><td>12.05%</td><td>17.64%</td><td>+5.59 ppt</td><td>第一优先级灰度</td></tr>
+<tr><td>线下客户经理</td><td>21.79%</td><td>26.77%</td><td>+4.98 ppt</td><td>第二优先级</td></tr>
+<tr><td>内容 / 搜索</td><td>17.48%</td><td>21.90%</td><td>+4.41 ppt</td><td>第二优先级</td></tr>
+<tr><td>应用商店</td><td>15.73%</td><td>19.16%</td><td>+3.43 ppt</td><td>保守推进</td></tr>
+</tbody></table>
+<h2>六、潜在业务价值</h2>
+<p>若当前 uplift 在后续灰度中保持稳定，则每 10 万落地页访问用户大致可新增：</p>
+<ul>
+<li>4,736 个开户完成</li>
+<li>1,858 个 7 日留存用户</li>
+<li>1,940 个 7 日首充账户</li>
+</ul>
+<p>这些结果可作为短中期业务价值信号，但不能替代长期收益口径。</p>
+<h2>七、局限性与下一步</h2>
+<h3>当前局限性</h3>
+<ul>
+<li>本案例数据为模拟生成，用于复现实验分析框架与决策过程，不对应任何真实券商用户或业务结果。</li>
+<li>当前改动为多项设计同时打包，只能识别组合效果，不能直接确认单项因素。</li>
+<li>当前质量指标仍以 7 日窗口为主，对长期商业质量的解释力有限。</li>
+<li>SRM、污染、跨设备与成熟窗问题在本案例中被显性讨论，但并不意味着已被完全排除。</li>
+</ul>
+<h3>下一步建议</h3>
+<ul>
+<li>拆解单因素测试：表单精简 / 进度条 / FAQ 解释。</li>
+<li>新增护栏：身份验证失败率、客服咨询量、风险问答中断率。</li>
+<li>新增日志：首曝日志、曝光日志、客服人工介入标签、跨设备识别质量标记。</li>
+<li>补长期结果：首月入金、首月交易活跃、30 日留存，并按周跟踪效果漂移。</li>
+</ul></div></body></html>
