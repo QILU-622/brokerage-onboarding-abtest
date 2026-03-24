@@ -1,217 +1,179 @@
 <!DOCTYPE html>
 <html lang="zh-CN">
 <head>
-  <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>券商 App 新客开户 A/B 实验复盘｜灰度上线决策</title>
-  <meta name="description" content="券商 App 新客开户流程优化 A/B 实验复盘，包含实验设置、指标定义、机制分析与分渠道灰度方案。">
+  <meta name="description" content="围绕券商 App 新客开户流程优化，评估当前 uplift 是否支持继续推进，并给出分渠道灰度与回滚规则。">
   <link rel="stylesheet" href="assets/site.css">
 </head>
 <body>
-  <header class="topbar">
+  <div class="topbar">
     <div class="container topbar-inner">
-      <div class="brand">
-        <span class="brand-badge"></span>
-        <span>A/B 实验复盘 · 放量决策</span>
-      </div>
+      <div class="brand">A/B 实验复盘 · 灰度上线决策</div>
       <nav class="nav">
-        <a href="#decision">结论</a>
+        <a href="#conclusion">结论</a>
         <a href="#evidence">证据</a>
         <a href="#mechanism">机制</a>
         <a href="#rollout">上线方案</a>
-        <a href="#risk">验证重点</a>
+        <a href="#risks">验证重点</a>
       </nav>
+    </div>
+  </div>
+
+  <header class="hero">
+    <div class="container">
+      <div class="hero-card">
+        <div class="eyebrow">Brokerage onboarding A/B experiment</div>
+        <h1>流程优化是否足以支持继续买量，且不会以质量或服务成本为代价？</h1>
+        <p class="lead">在券商新客获取成本较高的场景里，单纯提升开户完成并不足以支持扩量。更关键的是：链路效率是否真正改善、短期质量是否稳定、分渠道放量条件是否已经清楚。</p>
+        <div class="hero-actions">
+          <a class="button primary" href="reports/brokerage_abtest_report.html">查看分析报告</a>
+          <a class="button" href="https://github.com/QILU-622/brokerage-onboarding-abtest" target="_blank" rel="noopener">GitHub 仓库</a>
+          <a class="button" href="https://github.com/QILU-622/brokerage-onboarding-abtest/tree/main/notebooks" target="_blank" rel="noopener">Notebook</a>
+          <a class="button" href="https://github.com/QILU-622/brokerage-onboarding-abtest/tree/main/sql" target="_blank" rel="noopener">SQL 查询</a>
+        </div>
+      </div>
     </div>
   </header>
 
   <main>
-    <section class="hero">
+    <section class="section" id="conclusion">
       <div class="container">
-        <span class="eyebrow">Brokerage onboarding A/B experiment</span>
-        <div class="hero-grid">
-          <article class="card hero-card">
-            <div class="kicker">业务命题</div>
-            <h1>流程优化是否足以支持继续买量，且不会以质量或服务成本为代价？</h1>
-            <p class="hero-lead">
-              在券商新客获取成本较高的场景里，单纯提升开户完成并不足以支持扩量。需要同时看到链路效率改善、短期质量稳定，以及渠道放量条件清晰。
-            </p>
-            <div class="action-row">
-              <a class="btn btn-primary" href="reports/brokerage_abtest_report.html">查看分析报告</a>
-              <a class="btn btn-secondary" href="https://github.com/QILU-622/brokerage-onboarding-abtest" target="_blank" rel="noopener">GitHub 仓库</a>
-              <a class="btn btn-secondary" href="https://github.com/QILU-622/brokerage-onboarding-abtest/blob/main/notebooks/brokerage_abtest_analysis.ipynb" target="_blank" rel="noopener">Notebook</a>
-              <a class="btn btn-secondary" href="https://github.com/QILU-622/brokerage-onboarding-abtest/tree/main/sql" target="_blank" rel="noopener">SQL 查询</a>
-            </div>
-          </article>
-
-          <aside class="card decision-card" id="decision">
-            <div class="kicker">当前判断</div>
-            <div class="decision-title">进入分渠道灰度，不建议直接全量</div>
-            <span class="tag">先验证稳定性，再决定最终上线范围</span>
-            <div class="callout">
-              <strong>决策依据</strong><br>
-              主指标显著改善，短期质量信号方向一致，投诉率未见恶化；但当前仍只能确认版本组合效果，尚不足以把 uplift 机械外推到长期收入或生命周期价值。
-            </div>
-            <div class="pill-row">
-              <span class="pill">主指标 uplift：+4.74 ppt</span>
-              <span class="pill">7 日留存：+1.86 ppt</span>
-              <span class="pill">7 日首充：+1.94 ppt</span>
-              <span class="pill">投诉率：未见显著恶化</span>
-            </div>
-          </aside>
-        </div>
-      </div>
-    </section>
-
-    <section class="section">
-      <div class="container grid-4">
-        <article class="card metric-card">
-          <div class="metric-label">实验样本</div>
-          <div class="metric-value">46,218</div>
-          <div class="metric-sub">对照组 23,256 · 实验组 22,962</div>
-        </article>
-        <article class="card metric-card">
-          <div class="metric-label">事件日志</div>
-          <div class="metric-value">221,046</div>
-          <div class="metric-sub">观察窗口 2026-01-01 至 2026-03-16</div>
-        </article>
-        <article class="card metric-card">
-          <div class="metric-label">开户完成率 uplift</div>
-          <div class="metric-value">+4.74 ppt</div>
-          <div class="metric-sub">16.82% → 21.55% · 95% CI [4.02, 5.45]</div>
-        </article>
-        <article class="card metric-card">
-          <div class="metric-label">短期质量信号</div>
-          <div class="metric-value">+1.86 / +1.94</div>
-          <div class="metric-sub">7 日留存 +1.86 ppt · 7 日首充 +1.94 ppt</div>
-        </article>
-      </div>
-    </section>
-
-    <section class="section">
-      <div class="container">
-        <div class="section-head">
-          <div>
-            <h2 class="section-title">A/B 实验设置与判读规则</h2>
-            <p class="section-desc">
-              采用同一时期内并行观察的随机对照实验。先交代四项必要设置，后续结果、机制分析与灰度方案都按这组定义理解。
-            </p>
+        <div class="grid-4">
+          <div class="card metric-card">
+            <div class="label">当前判断</div>
+            <div class="value">分渠道灰度</div>
+            <div class="sub">不建议直接全量</div>
+          </div>
+          <div class="card metric-card">
+            <div class="label">实验样本</div>
+            <div class="value">46,218</div>
+            <div class="sub">对照组 23,256 · 实验组 22,962</div>
+          </div>
+          <div class="card metric-card">
+            <div class="label">主指标 uplift</div>
+            <div class="value">+4.74 ppt</div>
+            <div class="sub">16.82% → 21.55% · 95% CI [4.02, 5.45]</div>
+          </div>
+          <div class="card metric-card">
+            <div class="label">短期质量信号</div>
+            <div class="value">+1.86 / +1.94</div>
+            <div class="sub">7 日留存 +1.86 ppt · 7 日首充 +1.94 ppt</div>
           </div>
         </div>
-        <div class="grid-4">
-          <article class="card panel compact-panel">
-            <h3>分流单位</h3>
-            <p><strong>用户层级 50/50 随机分流</strong>。同一用户进入旧流程或新流程组合方案，避免把时间波动、渠道波动误当成改版效果。</p>
-          </article>
-          <article class="card panel compact-panel">
-            <h3>版本定义</h3>
-            <p><strong>Control</strong> 为原开户流程，<strong>Treatment</strong> 为本轮优化后的组合版本。当前结论对应整套新流程的组合效果，暂不拆到单个页面元素。</p>
-          </article>
-          <article class="card panel compact-panel">
-            <h3>指标分工</h3>
-            <p><strong>主指标</strong>看开户完成率，<strong>护栏指标</strong>看 7 日留存率与 7 日投诉率，<strong>次级指标</strong>看 7 日首充率，避免只盯转化率本身。</p>
-          </article>
-          <article class="card panel compact-panel">
-            <h3>判读方式</h3>
-            <p><strong>uplift 统一用绝对百分点（ppt）</strong>表达；95% 置信区间若跨 0，则不支持稳定的正向判断。推进节奏还要结合质量层与风险检查。</p>
-          </article>
+
+        <div class="grid-2" style="margin-top: 16px;">
+          <div class="card">
+            <div class="kicker">结论</div>
+            <h2>现有证据支持继续推进，但不支持直接全量</h2>
+            <p>主指标显著改善，短期质量信号方向一致，投诉率未见显著恶化；但当前仍只能确认整套新流程的组合效果，尚不足以把 uplift 机械外推到长期收入或生命周期价值。</p>
+            <div class="callout"><strong>当前更接近的业务判断：</strong>降低前中段流程摩擦后，更多用户顺利走完开户链路；现阶段最稳妥的动作，是按渠道灰度验证稳定性，再决定最终上线范围。</div>
+            <div class="tag-row">
+              <span class="tag">主指标显著改善</span>
+              <span class="tag">7 日留存方向一致</span>
+              <span class="tag">投诉率未见恶化</span>
+              <span class="tag">仍需灰度复核</span>
+            </div>
+          </div>
+          <div class="card">
+            <div class="kicker">业务问题</div>
+            <h2>这轮评估实际在回答三件事</h2>
+            <ul class="list-clean">
+              <li>这组流程优化是否已经具备继续买量的条件。</li>
+              <li>uplift 主要来自链路的哪个阶段，哪些摩擦被缓解，哪些仍未解决。</li>
+              <li>不同渠道下，是否已经具备可复制的放量条件，以及应该如何设置升级与回滚规则。</li>
+            </ul>
+            <div class="note-box" style="margin-top: 12px;">
+              <div class="small"><strong>观察窗口：</strong>2026-01-01 至 2026-03-16 · 事件日志 221,046 条</div>
+            </div>
+          </div>
         </div>
       </div>
     </section>
 
     <section class="section" id="evidence">
       <div class="container">
-        <div class="section-head">
-          <div>
-            <h2 class="section-title">A/B 实验结果、证据检查与上线判断</h2>
-            <p class="section-desc">
-              这轮评估同时看三件事：结果是否改善、改善来自哪些链路环节、以及不同渠道下是否适合继续推进。
-            </p>
-          </div>
-          <span class="badge-inline">用户层级 50/50 分流 · channel / device / intent / age 未见明显失衡</span>
-        </div>
-
         <div class="grid-2">
-          <article class="card panel">
-            <h3>结果层、质量层、过程层指标树</h3>
+          <div class="card">
+            <div class="kicker">实验设置</div>
+            <h2>A/B 实验设置与判读规则</h2>
             <div class="table-wrap">
               <table>
                 <thead>
                   <tr>
-                    <th>层级</th>
-                    <th>指标</th>
-                    <th>当前结论</th>
-                    <th>用途</th>
+                    <th>模块</th>
+                    <th>当前设置</th>
+                    <th>作用</th>
                   </tr>
                 </thead>
                 <tbody>
                   <tr>
-                    <td><strong>结果层</strong></td>
-                    <td>开户完成率、7 日首充率</td>
-                    <td>主指标显著改善；首充方向一致</td>
-                    <td>判断本轮改动是否带来更高的有效开户产出</td>
+                    <td>分流单位</td>
+                    <td>用户层级 50/50 随机分流</td>
+                    <td>避免把时间波动、渠道波动误当成改版效果</td>
                   </tr>
                   <tr>
-                    <td><strong>质量层</strong></td>
-                    <td>7 日留存率、7 日投诉率</td>
-                    <td>留存改善；投诉率未见恶化</td>
-                    <td>识别 uplift 是否通过牺牲体验或引入低质量账户换得</td>
+                    <td>版本定义</td>
+                    <td>Control 为原开户流程；Treatment 为本轮优化后的组合版本</td>
+                    <td>当前结论只对应组合效果，暂不拆到单一页面元素</td>
                   </tr>
                   <tr>
-                    <td><strong>过程层护栏</strong></td>
-                    <td>OTP 失败率、绑卡失败率、KYC 复核失败率、风险问答中断率、客服咨询量</td>
-                    <td>当前未完整接入，需要在灰度阶段补齐</td>
-                    <td>识别服务承压、系统摩擦与末端收口风险</td>
+                    <td>指标分工</td>
+                    <td>主指标：开户完成率；护栏：7 日留存率、7 日投诉率；次级指标：7 日首充率</td>
+                    <td>避免只盯转化率本身，忽略质量层与商业方向</td>
+                  </tr>
+                  <tr>
+                    <td>判读方式</td>
+                    <td>统一使用绝对百分点变化（ppt）；95% 置信区间跨 0 时不支持稳定正向判断</td>
+                    <td>推进节奏同时参考收益、质量和实验有效性</td>
                   </tr>
                 </tbody>
               </table>
             </div>
-          </article>
-
-          <article class="card panel">
-            <h3>可信度检查表</h3>
+          </div>
+          <div class="card">
+            <div class="kicker">证据检查</div>
+            <h2>可信度检查不是可选项</h2>
             <div class="table-wrap">
               <table>
                 <thead>
                   <tr>
                     <th>检查项</th>
                     <th>当前观察</th>
-                    <th>为什么重要</th>
-                    <th>若异常会怎样</th>
+                    <th>含义</th>
                   </tr>
                 </thead>
                 <tbody>
                   <tr>
                     <td>Balance check</td>
                     <td>channel p=0.205 · device p=0.286 · intent p=0.421 · age p=0.936</td>
-                    <td>保证实验组与对照组基础结构可比</td>
-                    <td>uplift 可能被样本结构差异污染</td>
+                    <td>当前观测维度下未见明显失衡，可比性较好</td>
                   </tr>
                   <tr>
-                    <td>SRM / cohort 规则</td>
-                    <td>当前未见明显异常，但需继续监控 assignment → exposure → outcome 链条</td>
-                    <td>确保读到的结果来自有效随机分流</td>
-                    <td>实验效果可能整体失真</td>
+                    <td>统计方法</td>
+                    <td>双样本比例检验 + 非合并 95% CI；分渠道 uplift 使用 Holm 校正</td>
+                    <td>支撑整体 uplift 与分渠道判断的基础显著性</td>
                   </tr>
                   <tr>
                     <td>Mature window</td>
-                    <td>7 日后验指标必须在成熟 cohort 上读取</td>
-                    <td>避免尾部样本未成熟导致系统性低估</td>
-                    <td>留存、首充等 post metrics 被误读</td>
+                    <td>7 日留存与 7 日首充只能在 mature cohort 上读取</td>
+                    <td>避免尾部未成熟样本系统性低估 post metrics</td>
                   </tr>
                   <tr>
-                    <td>Contamination / cross-device</td>
-                    <td>灰度阶段继续检查跨渠道回流、跨设备识别与人工补救标签</td>
-                    <td>防止组间边界被稀释</td>
-                    <td>结果可解释性明显下降</td>
+                    <td>assignment → exposure → outcome</td>
+                    <td>灰度阶段补齐首曝日志、曝光日志与用户去重规则</td>
+                    <td>这是判断 SRM、污染与跨设备问题的关键证据链</td>
                   </tr>
                 </tbody>
               </table>
             </div>
-          </article>
+          </div>
         </div>
 
-        <div class="card panel" style="margin-top:18px;">
-          <h3>整体结果</h3>
+        <div class="card" style="margin-top: 16px;">
+          <div class="kicker">整体结果</div>
+          <h2>当前结果满足“主指标 uplift + 质量层稳定 + 商业方向一致”</h2>
           <div class="table-wrap">
             <table>
               <thead>
@@ -229,17 +191,17 @@
                   <td>开户完成率</td>
                   <td>16.82%</td>
                   <td>21.55%</td>
-                  <td class="highlight-positive">+4.74 ppt</td>
+                  <td>+4.74 ppt</td>
                   <td>[4.02, 5.45]</td>
-                  <td>支持继续灰度</td>
+                  <td><span class="status good">支持继续灰度</span></td>
                 </tr>
                 <tr>
                   <td>7 日留存率</td>
                   <td>35.23%</td>
                   <td>37.09%</td>
-                  <td class="highlight-positive">+1.86 ppt</td>
+                  <td>+1.86 ppt</td>
                   <td>[0.98, 2.73]</td>
-                  <td>短期质量同步改善</td>
+                  <td><span class="status good">短期质量同步改善</span></td>
                 </tr>
                 <tr>
                   <td>7 日投诉率</td>
@@ -247,63 +209,44 @@
                   <td>1.280%</td>
                   <td>+0.00 ppt</td>
                   <td>[-0.20, 0.21]</td>
-                  <td>未见显著恶化</td>
+                  <td><span class="status warn">未见显著恶化</span></td>
                 </tr>
                 <tr>
                   <td>7 日首充率</td>
                   <td>34.18%</td>
                   <td>36.12%</td>
-                  <td class="highlight-positive">+1.94 ppt</td>
+                  <td>+1.94 ppt</td>
                   <td>[1.07, 2.81]</td>
-                  <td>商业方向一致</td>
+                  <td><span class="status good">商业方向一致</span></td>
                 </tr>
               </tbody>
             </table>
           </div>
-          <p class="small">当前证据更接近于链路摩擦下降后的转化改善；短期代理指标仍不能替代首月入金、交易活跃或 LTV 结论。</p>
+          <p class="small" style="margin-top: 12px;">当前证据更接近于链路摩擦下降后的转化改善；短期代理指标仍不能替代首月入金、交易活跃或 LTV 结论。</p>
         </div>
       </div>
     </section>
 
     <section class="section" id="mechanism">
       <div class="container">
-        <div class="section-head">
-          <div>
-            <h2 class="section-title">改善主要发生在前中段，下一步动作应围绕摩擦点继续拆解</h2>
-            <p class="section-desc">
-              整体 uplift 主要来自基础信息填写、风险测评启动与风险测评完成三个环节。后续动作也应围绕这些节点继续细拆。
-            </p>
-          </div>
-        </div>
-
         <div class="grid-2">
-          <article class="card panel">
-            <h3>相邻步骤转化率变化</h3>
-            <div class="table-wrap">
-              <table>
-                <thead>
-                  <tr>
-                    <th>相邻步骤</th>
-                    <th>对照组</th>
-                    <th>实验组</th>
-                    <th>变化</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  <tr><td>Landing → Start onboarding</td><td>80.50%</td><td>80.79%</td><td>+0.29 ppt</td></tr>
-                  <tr><td>Start → Submit basic info</td><td>69.90%</td><td>77.04%</td><td class="highlight-positive">+7.14 ppt</td></tr>
-                  <tr><td>Submit basic info → ID pass</td><td>81.60%</td><td>83.73%</td><td>+2.13 ppt</td></tr>
-                  <tr><td>ID pass → Risk assessment start</td><td>74.41%</td><td>78.81%</td><td class="highlight-positive">+4.40 ppt</td></tr>
-                  <tr><td>Risk start → Risk complete</td><td>72.90%</td><td>78.01%</td><td class="highlight-positive">+5.11 ppt</td></tr>
-                  <tr><td>Risk complete → Bind bank card</td><td>81.72%</td><td>82.35%</td><td>+0.64 ppt</td></tr>
-                  <tr><td>Bind bank card → Complete</td><td>82.63%</td><td>81.69%</td><td class="highlight-warning">-0.94 ppt</td></tr>
-                </tbody>
-              </table>
+          <div class="card">
+            <div class="kicker">机制拆解</div>
+            <h2>改善主要发生在前中段，下一步动作也应围绕这些节点展开</h2>
+            <div class="bars">
+              <div class="bar-row"><div class="bar-label">Landing → Start onboarding</div><div class="bar-track"><div class="bar-fill" style="width: 4%;"></div></div><div class="bar-value">+0.29</div></div>
+              <div class="bar-row"><div class="bar-label">Start → Submit basic info</div><div class="bar-track"><div class="bar-fill" style="width: 100%;"></div></div><div class="bar-value">+7.14</div></div>
+              <div class="bar-row"><div class="bar-label">Submit basic info → ID pass</div><div class="bar-track"><div class="bar-fill" style="width: 30%;"></div></div><div class="bar-value">+2.13</div></div>
+              <div class="bar-row"><div class="bar-label">ID pass → Risk assessment start</div><div class="bar-track"><div class="bar-fill" style="width: 62%;"></div></div><div class="bar-value">+4.40</div></div>
+              <div class="bar-row"><div class="bar-label">Risk start → Risk complete</div><div class="bar-track"><div class="bar-fill" style="width: 72%;"></div></div><div class="bar-value">+5.11</div></div>
+              <div class="bar-row"><div class="bar-label">Risk complete → Bind bank card</div><div class="bar-track"><div class="bar-fill" style="width: 9%;"></div></div><div class="bar-value">+0.64</div></div>
+              <div class="bar-row"><div class="bar-label">Bind bank card → Complete</div><div class="bar-track"><div class="bar-fill" style="width: 13%; background: linear-gradient(90deg, #dc2626, #fca5a5);"></div></div><div class="bar-value">-0.94</div></div>
             </div>
-          </article>
-
-          <article class="card panel">
-            <h3>发现 → 推断 → 下一步动作</h3>
+            <p class="small" style="margin-top: 12px;">单位：实验组 - 对照组，绝对百分点变化（ppt）</p>
+          </div>
+          <div class="card">
+            <div class="kicker">发现 → 推断 → 动作</div>
+            <h2>把结果层结论翻译成下一轮实验动作</h2>
             <div class="table-wrap">
               <table>
                 <thead>
@@ -332,24 +275,17 @@
                 </tbody>
               </table>
             </div>
-          </article>
+            <div class="callout" style="margin-top: 14px;"><strong>为什么最后一步略降，整体结论仍然成立：</strong>末端回落量级明显小于前中段几个关键节点的提升幅度，而且本轮改动并未直接解决 OTP、银行卡验证、KYC 复核与外部跳转等待等末端摩擦，因此不会改变 end-to-end completion 的整体方向。</div>
+          </div>
         </div>
       </div>
     </section>
 
     <section class="section" id="rollout">
       <div class="container">
-        <div class="section-head">
-          <div>
-            <h2 class="section-title">分渠道灰度执行方案</h2>
-            <p class="section-desc">
-              当前页面直接给出灰度动作：首轮给多少流量、观察多久、什么条件升级、什么条件暂停。
-            </p>
-          </div>
-        </div>
-
-        <div class="card panel">
-          <h3>建议 rollout 方案</h3>
+        <div class="card">
+          <div class="kicker">分渠道灰度执行方案</div>
+          <h2>当前不建议直接全量；更稳妥的推进方式，是把升级与回滚规则写清楚</h2>
           <div class="table-wrap">
             <table>
               <thead>
@@ -365,16 +301,16 @@
               </thead>
               <tbody>
                 <tr>
-                  <td><strong>阶段一</strong></td>
+                  <td>阶段一</td>
                   <td>推荐渠道、付费投放</td>
                   <td>+5.65 / +5.59 ppt</td>
                   <td>各 20%</td>
                   <td>至少 14 个自然日，且 7 日 mature cohort 完整</td>
-                  <td>开户 uplift 的 95% 区间下界仍大于 0；7 日留存不转负；投诉率未持续恶化</td>
+                  <td>开户 uplift 的区间下界仍大于 0；7 日留存不转负；投诉率未持续恶化；过程层护栏稳定</td>
                   <td>投诉率持续抬升；身份验证失败率、客服咨询量或风险问答中断率明显变差；出现 SRM 或跨设备识别异常</td>
                 </tr>
                 <tr>
-                  <td><strong>阶段二</strong></td>
+                  <td>阶段二</td>
                   <td>线下客户经理、内容 / 搜索</td>
                   <td>+4.98 / +4.41 ppt</td>
                   <td>各 10%–15%</td>
@@ -383,7 +319,7 @@
                   <td>渠道 uplift 明显弱于总体且护栏转差；人工补救量上升稀释 unit economics</td>
                 </tr>
                 <tr>
-                  <td><strong>阶段三</strong></td>
+                  <td>阶段三</td>
                   <td>应用商店</td>
                   <td>+3.43 ppt</td>
                   <td>5%–10%</td>
@@ -394,73 +330,49 @@
               </tbody>
             </table>
           </div>
-          <p class="small">灰度比例为执行建议，便于后续按统一规则推进。</p>
-        </div>
-
-        <div class="grid-2" style="margin-top:18px;">
-          <article class="card panel">
-            <h3>渠道优先级</h3>
-            <ul class="list-clean">
-              <li><strong>第一优先级：</strong>推荐渠道、付费投放。当前 uplift 最高，且更适合先验证规模化投放下的稳定性。</li>
-              <li><strong>第二梯队：</strong>线下客户经理、内容 / 搜索。方向一致，但更适合作为阶段二补充验证。</li>
-              <li><strong>保守推进：</strong>应用商店。更容易受到安装后低意向流量影响，应额外关注安装后启动质量与末端收口。</li>
-            </ul>
-          </article>
-          <article class="card panel">
-            <h3>经营解释</h3>
-            <ul class="list-clean">
-              <li><strong>每 10 万落地页访问</strong>预计新增 4,736 个开户完成。</li>
-              <li><strong>每 10 万落地页访问</strong>预计新增 1,858 个 7 日留存用户。</li>
-              <li><strong>每 10 万落地页访问</strong>预计新增 1,940 个 7 日首充账户。</li>
-              <li>这意味着当前 uplift 并非单纯扩张低质量账户；若推荐渠道和付费投放的表现可复制，则单位流量的有效开户产出更可能改善，预算优先向这些渠道倾斜更有经营意义。</li>
-            </ul>
-          </article>
+          <div class="grid-3" style="margin-top: 16px;">
+            <div class="note-box">
+              <strong>第一优先级</strong>
+              <p>推荐渠道、付费投放。当前 uplift 最高，更适合先验证规模化投放下的稳定性。</p>
+            </div>
+            <div class="note-box">
+              <strong>第二梯队</strong>
+              <p>线下客户经理、内容 / 搜索。方向一致，但更适合作为阶段二补充验证。</p>
+            </div>
+            <div class="note-box">
+              <strong>保守推进</strong>
+              <p>应用商店。更容易受到安装后低意向流量影响，应额外关注安装后启动质量与末端收口。</p>
+            </div>
+          </div>
         </div>
       </div>
     </section>
 
-    <section class="section" id="risk">
+    <section class="section" id="risks">
       <div class="container">
-        <div class="section-head">
-          <div>
-            <h2 class="section-title">全量前仍需二次验证</h2>
-            <p class="section-desc">
-              出现 uplift 后仍需经过灰度阶段复核稳定性、可复制性与服务承压能力。
-            </p>
-          </div>
-        </div>
-
-        <div class="grid-3">
-          <article class="card panel">
-            <h3>需要继续验证的风险</h3>
+        <div class="grid-2">
+          <div class="card">
+            <div class="kicker">全量前仍需二次验证</div>
+            <h2>出现 uplift 后，仍需经过灰度阶段复核稳定性、可复制性与服务承压能力</h2>
             <ul class="list-clean">
-              <li>SRM：assignment、exposure 与 analysis cohort 一旦错位，uplift 解释力会明显下降。</li>
-              <li>污染：跨渠道回流、重复进入链路与客服人工补救会稀释组间边界。</li>
-              <li>跨设备识别：账号键或设备图谱不稳定时，可能产生跨组暴露与步骤漏记。</li>
-              <li>成熟窗截断：7 日留存与 7 日首充只能在 mature cohort 上读取。</li>
-              <li>新鲜感效应：早期 uplift 可能高于长期稳定效果，应按周追踪 effect drift。</li>
+              <li><strong>SRM：</strong>assignment、exposure 与 analysis cohort 一旦错位，uplift 解释力会明显下降。</li>
+              <li><strong>污染：</strong>跨渠道回流、重复进入链路与客服人工补救会稀释组间边界。</li>
+              <li><strong>跨设备识别：</strong>账号键或设备图谱不稳定时，可能产生跨组暴露与步骤漏记。</li>
+              <li><strong>成熟窗截断：</strong>7 日留存与 7 日首充只能在 mature cohort 上读取。</li>
+              <li><strong>新鲜感效应：</strong>早期 uplift 可能高于长期稳定效果，应按周追踪 effect drift。</li>
             </ul>
-          </article>
-
-          <article class="card panel">
-            <h3>灰度阶段必须补齐的日志与指标</h3>
+          </div>
+          <div class="card">
+            <div class="kicker">灰度阶段必须补齐</div>
+            <h2>没有过程层日志，灰度就缺少真正的止损抓手</h2>
             <ul class="list-clean">
-              <li>首曝日志、曝光日志、用户去重规则，形成 assignment → exposure → outcome 闭环。</li>
+              <li>首曝日志、曝光日志、用户去重规则，形成 <span class="mono">assignment → exposure → outcome</span> 闭环。</li>
               <li>身份验证失败率、OTP 失败率、绑卡失败率、风险问答中断率。</li>
               <li>客服咨询量、人工补救标签与投诉分类规则，用于识别是否出现服务成本上升。</li>
               <li>30 日留存、首月入金、首月交易活跃与渠道分层质量结果。</li>
             </ul>
-          </article>
-
-          <article class="card panel">
-            <h3>下一轮实验优先级</h3>
-            <ul class="list-clean">
-              <li>先在重点渠道验证当前组合方案的稳定性，再决定是否扩大范围。</li>
-              <li>对表单精简、进度提示、FAQ 解释做单因素拆解，收紧归因结论。</li>
-              <li>单独立项排查末端摩擦，避免前中段改善被 OTP / KYC / 绑卡失败吞噬。</li>
-              <li>把结果层、质量层、过程层护栏接入同一张运营看板。</li>
-            </ul>
-          </article>
+            <div class="callout"><strong>下一轮实验优先级：</strong>先在重点渠道验证当前组合方案的稳定性，再决定是否扩大范围；对表单精简、进度提示、FAQ 解释做单因素拆解；单独立项排查末端摩擦；把结果层、质量层、过程层护栏接入同一张运营看板。</div>
+          </div>
         </div>
       </div>
     </section>
@@ -468,9 +380,7 @@
 
   <footer class="footer">
     <div class="container">
-      <div class="footer-note">
-        注：页面数值来自脱敏重建场景，不对应任何实际机构经营数据。所有百分比变化均为绝对百分点变化（ppt）。
-      </div>
+      注：页面数值来自脱敏重建场景，不对应任何实际机构经营数据。所有百分比变化均为绝对百分点变化（ppt）。
     </div>
   </footer>
 </body>
