@@ -1,28 +1,63 @@
-# 券商 App 新客开户 A/B 实验复盘｜灰度上线决策
+# Brokerage App Onboarding A/B Test
 
-本项目围绕一个核心问题展开：当开户链路的表单负担、流程提示和关键疑问解释被同时优化后，这组改动是否值得继续放量，以及应如何控制上线风险。
+A portfolio case study showing how Python, SQL, funnel analysis, and statistical inference can support a staged rollout decision for a redesigned brokerage-app onboarding journey.
 
-## 目录结构
+> **Data disclosure:** The dataset is entirely synthetic and was created solely for portfolio demonstration. It contains 46,218 simulated users and 221,046 simulated event records. It does not come from an internship, employer, client, brokerage, production system, or any confidential source.
 
-- `index.html`：项目主页，面向作品集展示。
-- `reports/brokerage_abtest_report.html`：分析报告，面向完整复盘。
-- `notebooks/brokerage_abtest_analysis.ipynb`：分析 Notebook，展示分析流程。
-- `sql/abtest_queries.sql`：核心口径 SQL。
-- `results/*.csv`：示例结果表。
-- `analysis.py`：读取结果文件并输出摘要。
-- `requirements.txt`：本地复现环境依赖。
+## Decision question
 
-## 当前业务判断
+After reducing form burden, improving process guidance, and clarifying key user questions, should the redesigned onboarding journey be expanded?
 
-建议进入分渠道灰度，暂不建议直接全量。
+**Recommendation:** proceed to a channel-level staged rollout, but do not move directly to full release.
 
-原因：
+## Key synthetic experiment results
 
-1. 开户完成率 uplift 为 +4.74 ppt，95% 置信区间不跨 0；
-2. 7 日留存率与 7 日首充率方向一致；
-3. 7 日投诉率未见显著恶化；
-4. 组合式改版尚未拆清单因子贡献，过程层护栏与实验有效性仍需继续复核。
+| Metric | Control | Treatment | Absolute change | 95% confidence interval |
+|---|---:|---:|---:|---:|
+| Account-opening completion | 16.82% | 21.55% | **+4.74 pp** | [4.02, 5.45] pp |
+| 7-day retention | 35.23% | 37.09% | +1.86 pp | [0.98, 2.73] pp |
+| 7-day first-deposit rate | 34.18% | 36.12% | +1.94 pp | [1.07, 2.81] pp |
+| 7-day complaint rate | 1.277% | 1.280% | +0.00 pp | [-0.20, 0.21] pp |
 
-## 使用方式
+The primary metric improved and the short-term quality metrics moved in the same direction, while the complaint-rate guardrail showed no statistically significant deterioration.
 
-直接将本仓库文件覆盖到 GitHub Pages 仓库根目录即可。当前版本不依赖外部图表库，页面资源均为本地文件或内嵌样式，适合静态托管。
+These figures come from a **synthetic portfolio experiment** and are not live business impact. The bundled redesign also does not isolate the contribution of each individual change, and long-term customer value remains unvalidated.
+
+## Analytical approach
+
+- User-level 50/50 randomisation.
+- Sample-balance and experiment-validity checks.
+- Funnel diagnosis across onboarding stages.
+- Two-sample proportion tests and 95% confidence intervals.
+- Channel heterogeneity analysis with multiple-testing control.
+- Primary metrics, commercial quality metrics, and complaint guardrails.
+- Staged-rollout recommendation with monitoring and rollback conditions.
+
+## Run locally
+
+```bash
+git clone https://github.com/QILU-622/brokerage-onboarding-abtest.git
+cd brokerage-onboarding-abtest
+
+python -m venv .venv
+source .venv/bin/activate        # Windows: .venv\Scripts\activate
+
+python -m pip install -r requirements.txt
+python analysis.py
+```
+
+The script reads the example result tables in `results/` and prints the overall metric summary.
+
+## Repository guide
+
+- [`index.html`](index.html): portfolio overview.
+- [`reports/brokerage_abtest_report.html`](reports/brokerage_abtest_report.html): full experiment review.
+- [`notebooks/brokerage_abtest_analysis.ipynb`](notebooks/brokerage_abtest_analysis.ipynb): analysis workflow.
+- [`sql/abtest_queries.sql`](sql/abtest_queries.sql): core metric and validation queries.
+- [`results/`](results/): example result tables.
+- [`analysis.py`](analysis.py): command-line summary script.
+- [`requirements.txt`](requirements.txt): Python dependencies.
+
+## Decision boundary
+
+The current evidence supports further staged testing, not immediate full rollout. Before expansion, the experiment should continue to verify allocation validity, process guardrails, contamination risk, cross-device identity handling, and longer-term value.
