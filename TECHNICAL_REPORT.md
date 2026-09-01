@@ -40,7 +40,13 @@ The largest improvement occurs between onboarding start and basic-information su
 
 This matters because total conversion can improve while a later operational bottleneck remains hidden. The next experiment should separate form simplification, progress guidance, and FAQ placement instead of attributing the full uplift to one component.
 
-## 6. Validity and decision boundary
+## 6. Implementation and quality checks
+
+The Python implementation does not simply print the pre-formatted summary. It reads the committed success counts and sample sizes, recomputes group rates, absolute uplift, unpooled 95% confidence intervals, pooled z-statistics, and two-sided p-values, and reconciles them with the detailed result table.
+
+Six automated tests cover the published primary result, the complete four-metric set, English decision output, inference fields, and invalid sample sizes or success counts. GitHub Actions reruns the analysis and tests on Python 3.11 and 3.12 after each repository change.
+
+## 7. Validity and decision boundary
 
 - The treatment is a bundle, so the current analysis cannot isolate each component's causal contribution.
 - Seven-day outcomes are short-term proxies; 30-day retention, deposits, trading activity, and lifetime value remain untested.
