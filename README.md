@@ -2,6 +2,10 @@
 
 A portfolio case study showing how Python, SQL, funnel analysis, and statistical inference can support a staged rollout decision for a redesigned brokerage-app onboarding journey.
 
+**Independent portfolio project** · Python · SQL · A/B testing · funnel diagnostics · confidence intervals · rollout governance
+
+[Live project](https://qilu-622.github.io/brokerage-onboarding-abtest/) · [Technical report](TECHNICAL_REPORT.md) · [Analysis notebook](notebooks/brokerage_abtest_analysis.ipynb) · [SQL queries](sql/abtest_queries.sql)
+
 > **Data disclosure:** The dataset is entirely synthetic and was created solely for portfolio demonstration. It contains 46,218 simulated users and 221,046 simulated event records. It does not come from an internship, employer, client, brokerage, production system, or any confidential source.
 
 ## Decision question
@@ -33,6 +37,13 @@ These figures come from a **synthetic portfolio experiment** and are not live bu
 - Primary metrics, commercial quality metrics, and complaint guardrails.
 - Staged-rollout recommendation with monitoring and rollback conditions.
 
+## What this project demonstrates
+
+- **Experiment analysis:** connects randomisation, balance checks, confidence intervals, and multiple-testing control.
+- **Product diagnosis:** separates total funnel uplift from the specific steps where friction changed.
+- **Commercial judgement:** reads completion, retention, first deposit, and complaints together instead of optimising one conversion metric.
+- **Rollout governance:** translates the evidence into channel priorities, monitoring requirements, and rollback conditions.
+
 ## Run locally
 
 ```bash
@@ -48,6 +59,13 @@ python analysis.py
 
 The script reads the example result tables in `results/` and prints the overall metric summary.
 
+Optional regression checks:
+
+```bash
+python -m pip install -r requirements-dev.txt
+pytest -q
+```
+
 ## Repository guide
 
 - [`index.html`](index.html): portfolio overview.
@@ -56,7 +74,10 @@ The script reads the example result tables in `results/` and prints the overall 
 - [`sql/abtest_queries.sql`](sql/abtest_queries.sql): core metric and validation queries.
 - [`results/`](results/): example result tables.
 - [`analysis.py`](analysis.py): command-line summary script.
+- [`TECHNICAL_REPORT.md`](TECHNICAL_REPORT.md): methods, assumptions, results, limitations, and rollout logic.
+- [`tests/test_summary.py`](tests/test_summary.py): regression checks for the published experiment summary.
 - [`requirements.txt`](requirements.txt): Python dependencies.
+- [`requirements-dev.txt`](requirements-dev.txt): optional test dependency.
 
 ## Decision boundary
 

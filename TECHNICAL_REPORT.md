@@ -1,0 +1,51 @@
+# Technical Report: Brokerage App Onboarding A/B Test
+
+## 1. Project scope and ownership
+
+This is an independent synthetic portfolio project. I designed the experiment review, metric framework, funnel diagnosis, statistical checks, channel rollout logic, and decision boundaries. No employer, internship, client, brokerage, production, customer, or confidential data were used.
+
+The synthetic dataset contains 46,218 simulated users and 221,046 simulated event records. The dates, channels, behaviours, and outcomes exist only to reproduce the analytical workflow.
+
+## 2. Decision problem
+
+The treatment combines lower form burden, clearer process guidance, and better explanations of common user questions. The decision is whether the combined redesign should move into a staged rollout without buying conversion at the cost of retention, complaints, or operational pressure.
+
+## 3. Experiment design
+
+| Element | Design |
+|---|---|
+| Randomisation unit | User-level 50/50 assignment |
+| Sample | 23,256 control users; 22,962 treatment users |
+| Observation window | 75 days |
+| Primary metric | Account-opening completion |
+| Quality metrics | 7-day retention; 7-day first-deposit rate |
+| Guardrail | 7-day complaint rate |
+| Inference | Two-sample proportion tests and 95% confidence intervals |
+| Heterogeneity | Channel-level effects with Holm multiple-testing correction |
+
+## 4. Main results
+
+| Metric | Control | Treatment | Absolute change | 95% confidence interval |
+|---|---:|---:|---:|---:|
+| Account-opening completion | 16.82% | 21.55% | +4.74 pp | [4.02, 5.45] pp |
+| 7-day retention | 35.23% | 37.09% | +1.86 pp | [0.98, 2.73] pp |
+| 7-day first-deposit rate | 34.18% | 36.12% | +1.94 pp | [1.07, 2.81] pp |
+| 7-day complaint rate | 1.277% | 1.280% | +0.00 pp | [-0.20, 0.21] pp |
+
+The primary metric improves, short-term quality metrics move in the same direction, and the complaint-rate interval does not show a material deterioration. On this synthetic evidence, the correct decision is a staged rollout rather than immediate full release.
+
+## 5. Funnel diagnosis
+
+The largest improvement occurs between onboarding start and basic-information submission. Risk-assessment steps also improve. The final bank-card-to-completion step declines slightly, indicating that the treatment reduces early and middle-stage friction but does not resolve OTP, bank verification, KYC review, or external-redirect delays.
+
+This matters because total conversion can improve while a later operational bottleneck remains hidden. The next experiment should separate form simplification, progress guidance, and FAQ placement instead of attributing the full uplift to one component.
+
+## 6. Validity and decision boundary
+
+- The treatment is a bundle, so the current analysis cannot isolate each component's causal contribution.
+- Seven-day outcomes are short-term proxies; 30-day retention, deposits, trading activity, and lifetime value remain untested.
+- Assignment, exposure, and outcome logs must form a complete chain before scaling.
+- Cross-device identity, channel re-entry, manual remediation, and treatment contamination require monitoring.
+- Process guardrails should include OTP failure, bank-card binding failure, KYC review failure, support contacts, and complaint categories.
+
+The results are synthetic and are not evidence of live brokerage performance. They demonstrate the analytical process used to move from experiment data to a guarded operating decision.
