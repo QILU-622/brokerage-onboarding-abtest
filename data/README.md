@@ -8,5 +8,5 @@ brokerage, production, customer, or confidential data.
 - `onboarding_events.csv`: synthetic onboarding event log.
 - `post_metrics.csv`: synthetic seven-day outcome and guardrail metrics.
 
-Published summary tables are stored in `results/`. See the analysis notebook
-and SQL files for metric definitions and the validation workflow.
+Published summary tables are stored in `results/`. See `analysis.py` and the
+SQL files for metric definitions and the validation workflow.
