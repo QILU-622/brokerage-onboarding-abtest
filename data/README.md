@@ -1,3 +1,12 @@
-# data
+# Synthetic data directory
 
-该目录可用于放置脱敏后的实验原始明细、汇总表或中间产物。当前替换包未附带原始数据，只保留 `results/` 下的结果表，便于静态展示和 Notebook 说明。
+All files in this directory are simulated and were created solely to reproduce
+the portfolio analysis. They do not contain employer, internship, client,
+brokerage, production, customer, or confidential data.
+
+- `ab_assignment.csv`: synthetic user-level experiment assignment.
+- `onboarding_events.csv`: synthetic onboarding event log.
+- `post_metrics.csv`: synthetic seven-day outcome and guardrail metrics.
+
+Published summary tables are stored in `results/`. See the analysis notebook
+and SQL files for metric definitions and the validation workflow.
