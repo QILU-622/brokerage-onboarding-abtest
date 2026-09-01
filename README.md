@@ -1,10 +1,12 @@
 # Brokerage App Onboarding A/B Test
 
+[![Python tests](https://github.com/QILU-622/brokerage-onboarding-abtest/actions/workflows/tests.yml/badge.svg)](https://github.com/QILU-622/brokerage-onboarding-abtest/actions/workflows/tests.yml)
+
 A portfolio case study showing how Python, SQL, funnel analysis, and statistical inference can support a staged rollout decision for a redesigned brokerage-app onboarding journey.
 
 **Independent portfolio project** · Python · SQL · A/B testing · funnel diagnostics · confidence intervals · rollout governance
 
-[Live project](https://qilu-622.github.io/brokerage-onboarding-abtest/) · [Technical report](TECHNICAL_REPORT.md) · [Analysis notebook](notebooks/brokerage_abtest_analysis.ipynb) · [SQL queries](sql/abtest_queries.sql)
+[Live project](https://qilu-622.github.io/brokerage-onboarding-abtest/) · [Technical report](TECHNICAL_REPORT.md) · [Python inference](analysis.py) · [SQL query library](sql/)
 
 > **Data disclosure:** The dataset is entirely synthetic and was created solely for portfolio demonstration. It contains 46,218 simulated users and 221,046 simulated event records. It does not come from an internship, employer, client, brokerage, production system, or any confidential source.
 
@@ -25,6 +27,14 @@ After reducing form burden, improving process guidance, and clarifying key user 
 
 The primary metric improved and the short-term quality metrics moved in the same direction, while the complaint-rate guardrail showed no statistically significant deterioration.
 
+## Selected evidence
+
+![Primary and guardrail metrics](figures/03_primary_guardrail_metrics.png)
+
+![Overall effects with 95% confidence intervals](figures/05_overall_effects_ci.png)
+
+The full funnel and channel-level charts are available in [`figures/`](figures/), with their underlying result tables in [`results/`](results/).
+
 These figures come from a **synthetic portfolio experiment** and are not live business impact. The bundled redesign also does not isolate the contribution of each individual change, and long-term customer value remains unvalidated.
 
 ## Analytical approach
@@ -43,6 +53,15 @@ These figures come from a **synthetic portfolio experiment** and are not live bu
 - **Product diagnosis:** separates total funnel uplift from the specific steps where friction changed.
 - **Commercial judgement:** reads completion, retention, first deposit, and complaints together instead of optimising one conversion metric.
 - **Rollout governance:** translates the evidence into channel priorities, monitoring requirements, and rollback conditions.
+
+## Implementation and verification
+
+| Evidence | What can be inspected |
+|---|---|
+| Count-based inference | Python recomputes rates, absolute uplift, unpooled 95% confidence intervals, pooled z-statistics, and two-sided p-values from success counts and sample sizes. |
+| Source reconciliation | Every recomputed statistic is checked against the committed result table; inconsistent inputs fail before a decision summary is printed. |
+| Regression tests | Six tests cover the published primary result, four-metric completeness, English output, inference fields, and invalid experiment counts. |
+| Continuous integration | GitHub Actions runs the analysis and tests on Python 3.11 and 3.12 for every push and pull request. |
 
 ## Run locally
 
@@ -69,13 +88,13 @@ pytest -q
 ## Repository guide
 
 - [`index.html`](index.html): portfolio overview.
-- [`reports/brokerage_abtest_report.html`](reports/brokerage_abtest_report.html): full experiment review.
-- [`notebooks/brokerage_abtest_analysis.ipynb`](notebooks/brokerage_abtest_analysis.ipynb): analysis workflow.
-- [`sql/abtest_queries.sql`](sql/abtest_queries.sql): core metric and validation queries.
-- [`results/`](results/): example result tables.
-- [`analysis.py`](analysis.py): command-line summary script.
+- [`analysis.py`](analysis.py): reproducible inference from committed counts, including confidence intervals, z-statistics, and p-values.
 - [`TECHNICAL_REPORT.md`](TECHNICAL_REPORT.md): methods, assumptions, results, limitations, and rollout logic.
+- [`sql/`](sql/): modular balance, metric, funnel, channel, and data-quality queries.
+- [`figures/`](figures/): selected experiment, funnel, and heterogeneity charts.
+- [`results/`](results/): committed result tables supporting the published findings.
 - [`tests/test_summary.py`](tests/test_summary.py): regression checks for the published experiment summary.
+- [`.github/workflows/tests.yml`](.github/workflows/tests.yml): automated verification on Python 3.11 and 3.12.
 - [`requirements.txt`](requirements.txt): Python dependencies.
 - [`requirements-dev.txt`](requirements-dev.txt): optional test dependency.
 
