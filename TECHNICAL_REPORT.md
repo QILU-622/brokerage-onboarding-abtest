@@ -44,9 +44,20 @@ This matters because total conversion can improve while a later operational bott
 
 The Python implementation does not simply print the pre-formatted summary. It reads the committed success counts and sample sizes, recomputes group rates, absolute uplift, unpooled 95% confidence intervals, pooled z-statistics, and two-sided p-values, and reconciles them with the detailed result table.
 
-Six automated tests cover the published primary result, the complete four-metric set, English decision output, inference fields, and invalid sample sizes or success counts. GitHub Actions reruns the analysis and tests on Python 3.11 and 3.12 after each repository change.
+Seven automated tests cover the published primary result, the complete four-metric set, metric roles, the multiplicity policy, English decision output, inference fields, and invalid sample sizes or success counts. GitHub Actions reruns the analysis and tests on Python 3.11 and 3.12 after each repository change.
 
-## 7. Validity and decision boundary
+## 7. Multiplicity policy
+
+The four overall outcomes are deliberately not corrected as one family because they have different inferential roles:
+
+- Account-opening completion is the single pre-specified primary outcome, so there is only one confirmatory efficacy test.
+- Retention and first deposit are supporting quality and commercial evidence, not additional co-primary success claims.
+- Complaints are a harm guardrail. Pooling this test with efficacy outcomes would make the harm check less sensitive and increase the chance of missing deterioration.
+- The five channel effects are same-status exploratory subgroup hypotheses. Holm correction is applied across that family to control the family-wise error rate without assuming independence.
+
+This asymmetry is therefore intentional rather than an omission. If a future experiment promoted several outcomes to co-primary success criteria, the analysis plan would pre-specify a testing hierarchy, gatekeeping procedure, or multiplicity correction for that confirmatory family.
+
+## 8. Validity and decision boundary
 
 - The treatment is a bundle, so the current analysis cannot isolate each component's causal contribution.
 - Seven-day outcomes are short-term proxies; 30-day retention, deposits, trading activity, and lifetime value remain untested.
