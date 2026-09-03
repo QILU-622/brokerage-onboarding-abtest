@@ -3,6 +3,8 @@ import math
 import pytest
 
 from analysis import (
+    METRIC_ROLES,
+    MULTIPLICITY_POLICY,
     calculate_proportion_effect,
     format_metric,
     load_overall_metrics,
@@ -41,6 +43,13 @@ def test_summary_is_english_first_and_includes_inference() -> None:
     assert "95% CI=[4.02, 5.45] pp" in rendered
     assert "p=" in rendered
     assert "supports staged rollout" in rendered
+
+
+def test_metric_roles_make_the_multiplicity_policy_explicit() -> None:
+    assert METRIC_ROLES["account_completed"] == "pre-specified primary outcome"
+    assert METRIC_ROLES["complaint_7d"] == "harm guardrail"
+    assert "not one confirmatory hypothesis family" in MULTIPLICITY_POLICY
+    assert "Holm correction" in MULTIPLICITY_POLICY
 
 
 @pytest.mark.parametrize(
