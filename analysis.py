@@ -23,6 +23,21 @@ DECISIONS = {
     "first_deposit_7d": "commercial quality moved in the same direction",
 }
 
+METRIC_ROLES = {
+    "account_completed": "pre-specified primary outcome",
+    "retention_7d": "supporting quality outcome",
+    "complaint_7d": "harm guardrail",
+    "first_deposit_7d": "supporting commercial outcome",
+}
+
+MULTIPLICITY_POLICY = (
+    "Overall outcomes are not one confirmatory hypothesis family: completion is the "
+    "single pre-specified primary outcome, retention and first deposit are supporting "
+    "evidence, and complaints are a harm guardrail. Pooling the guardrail with efficacy "
+    "tests would reduce sensitivity to harm. Holm correction is reserved for the five "
+    "same-status channel heterogeneity tests."
+)
+
 REQUIRED_COLUMNS = {
     "metric",
     "control_success",
@@ -195,6 +210,7 @@ def format_metric(result: MetricResult) -> str:
     """Render one recomputed result as an English decision summary."""
     return (
         f"{METRIC_NAMES[result.metric]}: "
+        f"role={METRIC_ROLES[result.metric]} | "
         f"control={_format_rate(result.metric, result.control_rate)} | "
         f"treatment={_format_rate(result.metric, result.treatment_rate)} | "
         f"uplift={result.difference * 100:+.2f} pp | "
@@ -208,6 +224,8 @@ def main() -> None:
     print("-" * 100)
     for result in load_overall_metrics():
         print(format_metric(result))
+    print("-" * 100)
+    print(f"Multiplicity policy: {MULTIPLICITY_POLICY}")
     print("-" * 100)
     print(
         "Boundary: synthetic portfolio experiment; "
