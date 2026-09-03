@@ -47,6 +47,10 @@ These figures come from a **synthetic portfolio experiment** and are not live bu
 - Primary metrics, commercial quality metrics, and complaint guardrails.
 - Staged-rollout recommendation with monitoring and rollback conditions.
 
+### Why Holm correction is used for channels, not all four overall metrics
+
+The four overall metrics are not treated as one confirmatory hypothesis family. Account-opening completion is the single pre-specified primary outcome; retention and first deposit are supporting evidence; complaints are a harm guardrail. Applying one correction across efficacy and harm monitoring would reduce sensitivity to a damaging guardrail movement. By contrast, the five channel effects are same-status subgroup tests, so Holm correction controls their family-wise error rate. A future experiment with multiple co-primary success metrics would require a pre-specified hierarchy, gatekeeping rule, or multiplicity adjustment.
+
 ## What this project demonstrates
 
 - **Experiment analysis:** connects randomisation, balance checks, confidence intervals, and multiple-testing control.
@@ -60,7 +64,7 @@ These figures come from a **synthetic portfolio experiment** and are not live bu
 |---|---|
 | Count-based inference | Python recomputes rates, absolute uplift, unpooled 95% confidence intervals, pooled z-statistics, and two-sided p-values from success counts and sample sizes. |
 | Source reconciliation | Every recomputed statistic is checked against the committed result table; inconsistent inputs fail before a decision summary is printed. |
-| Regression tests | Six tests cover the published primary result, four-metric completeness, English output, inference fields, and invalid experiment counts. |
+| Regression tests | Seven tests cover the published primary result, four-metric completeness, metric roles, multiplicity policy, English output, inference fields, and invalid experiment counts. |
 | Continuous integration | GitHub Actions runs the analysis and tests on Python 3.11 and 3.12 for every push and pull request. |
 
 ## Run locally
